@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portafolio Interactivo y Pedidos B2B — Glomarfarma SAS 2026</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --navy: #0f294a;
+    --navy-light: #1e4273;
+    --teal: #0d9488;
+    --teal-bg: #ccfbf1;
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    --green: #15803d;
+    --green-bg: #dcfce7;
+    --amber: #b45309;
+    --amber-bg: #fef3c7;
+    --red: #b91c1c;
+    --red-bg: #fee2e2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    color: #fff; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+    position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  }
+  .brand h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.3px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .mode-badge {
+    font-size: 0.72rem; padding: 3px 9px; border-radius: 999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .mode-client { background: rgba(13, 148, 136, 0.35); border: 1px solid #5eead4; color: #ccfbf1; }
+  .mode-dev { background: rgba(245, 158, 11, 0.3); border: 1px solid #fcd34d; color: #fef3c7; }
+  .brand p { font-size: 0.8rem; color: #cbd5e1; margin-top: 3px; }
+  .header-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .btn {
+    border: none; border-radius: 8px; padding: 8px 13px; font-size: 0.83rem; font-weight: 600; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s;
+  }
+  .btn-primary { background: var(--teal); color: #fff; }
+  .btn-primary:hover { background: #0f766e; }
+  .btn-light { background: rgba(255,255,255,0.14); color: #fff; border: 1px solid rgba(255,255,255,0.25); }
+  .btn-light:hover { background: rgba(255,255,255,0.24); }
+  .btn-dev { background: #d97706; color: #fff; }
+  .btn-dev:hover { background: #b45309; }
+  .btn-wa { background: #16a34a; color: #fff; width: 100%; justify-content: center; padding: 11px; font-size: 0.92rem; }
+  .btn-wa:hover { background: #15803d; }
+  .btn-outline { background: #fff; color: var(--navy); border: 1px solid var(--border); }
+  .btn-outline:hover { background: #f8fafc; }
+
+  /* Dev Bar */
+  .dev-panel {
+    background: #fffbeb; border-bottom: 2px solid #f59e0b; padding: 14px 24px;
+    display: none;
+  }
+  .dev-panel.open { display: block; }
+  .dev-inner {
+    max-width: 1480px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between;
+  }
+  .dev-group { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+  .dev-field { display: flex; flex-direction: column; gap: 4px; }
+  .dev-field label { font-size: 0.74rem; font-weight: 700; color: #92400e; text-transform: uppercase; }
+  .dev-field input, .dev-field select {
+    padding: 7px 10px; border: 1px solid #fcd34d; border-radius: 7px; font-size: 0.84rem; background: #fff; min-width: 185px;
+  }
+
+  .layout { display: grid; grid-template-columns: 1fr 390px; gap: 20px; max-width: 1480px; margin: 20px auto; padding: 0 20px; }
+  @media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } }
+
+  .toolbar {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 16px;
+    display: grid; grid-template-columns: 2fr 1.2fr 1fr 1fr; gap: 10px;
+  }
+  @media (max-width: 768px) { .toolbar { grid-template-columns: 1fr; } }
+  .toolbar input, .toolbar select {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none;
+  }
+  .toolbar input:focus, .toolbar select:focus { border-color: var(--teal); }
+
+  .stats-bar {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; font-size: 0.84rem; color: var(--muted);
+  }
+  .pill-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .pill {
+    padding: 5px 11px; border-radius: 999px; border: 1px solid var(--border); background: #fff;
+    font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--text);
+  }
+  .pill.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .list-lock-badge {
+    background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 5px 12px; border-radius: 999px;
+    font-size: 0.8rem; font-weight: 700;
+  }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(275px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px;
+    display: flex; flex-direction: column; justify-content: space-between; transition: box-shadow 0.15s;
+  }
+  .card:hover { box-shadow: 0 4px 14px rgba(15,41,74,0.08); }
+  .card.out { opacity: 0.65; }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; margin-bottom: 8px; }
+  .lab-tag { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--navy-light); background: #e0e7ff; padding: 3px 8px; border-radius: 6px; }
+  .new-tag { font-size: 0.7rem; font-weight: 700; color: #7c3aed; background: #ede9fe; padding: 3px 7px; border-radius: 6px; }
+  .sku-txt { font-size: 0.72rem; color: var(--muted); font-family: monospace; }
+
+  /* Product Image Box */
+  .img-box {
+    width: 100%; height: 150px; border-radius: 9px; background: #f8fafc; border: 1px solid var(--border);
+    margin-bottom: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
+  }
+  .img-box img {
+    width: 100%; height: 100%; object-fit: contain; padding: 6px; background: #fff;
+  }
+  .img-placeholder {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8;
+    font-size: 0.76rem; text-align: center; padding: 10px; gap: 4px;
+  }
+  .img-dev-overlay {
+    position: absolute; bottom: 6px; right: 6px; display: flex; gap: 4px;
+  }
+  .btn-img-edit {
+    background: rgba(15, 41, 74, 0.9); color: #fff; border: none; border-radius: 6px; padding: 5px 9px;
+    font-size: 0.74rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .btn-img-edit:hover { background: var(--teal); }
+  .btn-img-del {
+    background: rgba(185, 28, 28, 0.92); color: #fff; border: none; border-radius: 6px; padding: 5px 8px;
+    font-size: 0.74rem; font-weight: 700; cursor: pointer;
+  }
+
+  .prod-title { font-size: 0.93rem; font-weight: 700; line-height: 1.35; margin-bottom: 10px; color: var(--text); }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .badge { font-size: 0.74rem; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+  .b-ok { background: var(--green-bg); color: var(--green); }
+  .b-low { background: var(--amber-bg); color: var(--amber); }
+  .b-out { background: var(--red-bg); color: var(--red); }
+  .b-bono { background: var(--teal-bg); color: #0f766e; }
+  .b-iva { background: #f1f5f9; color: #475569; }
+
+  .price-row { display: flex; align-items: baseline; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 10px; margin-top: auto; }
+  .price-main { font-size: 1.15rem; font-weight: 800; color: var(--navy); }
+  .price-sub { font-size: 0.75rem; color: var(--muted); }
+  .qty-box { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+  .qty-box button {
+    width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--border); background: #f8fafc;
+    font-weight: 700; font-size: 1rem; cursor: pointer;
+  }
+  .qty-box button:hover { background: #e2e8f0; }
+  .qty-box input {
+    width: 54px; text-align: center; padding: 5px; border: 1px solid var(--border); border-radius: 7px; font-weight: 700;
+  }
+  .btn-add { flex: 1; background: var(--navy); color: #fff; border: none; border-radius: 7px; padding: 7px 10px; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
+  .btn-add:hover { background: var(--navy-light); }
+  .btn-add:disabled { background: #94a3b8; cursor: not-allowed; }
+
+  /* Cart Panel */
+  .cart-panel {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+    position: sticky; top: 82px; max-height: calc(100vh - 102px); display: flex; flex-direction: column;
+  }
+  .cart-header { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .cart-header h2 { font-size: 1.05rem; color: var(--navy); }
+  .client-banner {
+    background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; padding: 8px 10px; margin-bottom: 10px;
+    font-size: 0.82rem; color: #115e59;
+  }
+  .client-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .client-inputs input {
+    padding: 7px 9px; border: 1px solid var(--border); border-radius: 7px; font-size: 0.82rem; width: 100%;
+  }
+  .cart-items { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; min-height: 120px; }
+  .cart-item { border: 1px solid var(--border); border-radius: 9px; padding: 9px; background: #f8fafc; font-size: 0.82rem; }
+  .cart-item-top { display: flex; justify-content: space-between; font-weight: 700; gap: 6px; }
+  .cart-item-meta { color: var(--muted); font-size: 0.76rem; margin-top: 3px; display: flex; justify-content: space-between; align-items: center; }
+  .cart-summary { border-top: 2px solid var(--border); padding-top: 10px; margin-top: 10px; font-size: 0.86rem; }
+  .sum-line { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .sum-total { font-size: 1.1rem; font-weight: 800; color: var(--navy); border-top: 1px dashed var(--border); padding-top: 6px; margin-top: 6px; }
+  .cart-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 10px; }
+  .cart-btns .full { grid-column: span 2; }
+
+  .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 22px 0; }
+  .toast {
+    position: fixed; bottom: 20px; right: 20px; background: #0f172a; color: #fff; padding: 11px 16px;
+    border-radius: 10px; font-size: 0.86rem; font-weight: 600; display: none; z-index: 200; box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); display: none; align-items: center; justify-content: center; z-index: 150; padding: 16px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: #fff; border-radius: 14px; max-width: 440px; width: 100%; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  }
+  .modal h3 { font-size: 1.05rem; color: var(--navy); margin-bottom: 6px; }
+  .modal p { font-size: 0.83rem; color: var(--muted); margin-bottom: 14px; }
+  .modal input[type="text"], .modal input[type="password"] {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.88rem; margin-bottom: 12px;
+  }
+  .modal-preview {
+    width: 100%; height: 150px; border: 1px dashed #cbd5e1; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    margin-bottom: 12px; overflow: hidden; background: #f8fafc;
+  }
+  .modal-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>
+      GLOMARFARMA SAS — Portafolio &amp; Pedidos B2B
+      <span id="modeBadge" class="mode-badge mode-client">Modo Cliente</span>
+    </h1>
+    <p id="cutInfo">Catálogo vivo con precios, bonificaciones e inventario • 645 referencias</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-light" id="btnToggleMode" onclick="handleModeToggle()">🔒 Modo Desarrollador</button>
+  </div>
+</header>
+
+<!-- PANEL EXCLUSIVO MODO DESARROLLADOR -->
+<section class="dev-panel" id="devPanel">
+  <div class="dev-inner">
+    <div class="dev-group">
+      <div class="dev-field">
+        <label>Cliente / Droguería asignada</label>
+        <input type="text" id="devClientName" placeholder="Ej: Droguería San Jorge" oninput="syncClientConfig()">
+      </div>
+      <div class="dev-field">
+        <label>NIT / Cédula / Ciudad</label>
+        <input type="text" id="devClientNit" placeholder="Ej: 900.123.456 - Bogotá" oninput="syncClientConfig()">
+      </div>
+      <div class="dev-field">
+        <label>Lista de Precios del Cliente</label>
+        <select id="devPriceList" onchange="syncClientConfig()">
+          <option value="p1">Lista 1 (Base)</option>
+          <option value="p2">Lista 2 (Preferencial)</option>
+        </select>
+      </div>
+      <div class="dev-field">
+        <label>WhatsApp Destino (Glomarfarma)</label>
+        <input type="text" id="devWhatsapp" placeholder="573001234567" oninput="syncClientConfig()">
+      </div>
+    </div>
+
+    <div class="dev-group">
+      <label class="btn btn-primary" style="cursor:pointer;">
+        📥 Actualizar Excel (Stock/Precios)
+        <input type="file" id="excelUpload" accept=".xlsx,.xls,.csv" style="display:none;">
+      </label>
+      <button class="btn btn-dev" onclick="downloadConfiguredHtml()" title="Genera el archivo HTML listo con las fotos, cliente, WhatsApp y lista de precios fijados para enviárselo al cliente">
+        💾 Guardar HTML para Cliente
+      </button>
+      <button class="btn btn-outline" onclick="exportCatalogExcel()">Exportar Excel</button>
+      <button class="btn btn-outline" onclick="resetOriginalData()">Restaurar Base</button>
+    </div>
+  </div>
+</section>
+
+<div class="layout">
+  <main>
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="Buscar producto, principio activo, laboratorio o SKU..." oninput="applyFilters()">
+      <select id="labFilter" onchange="applyFilters()">
+        <option value="">Todos los laboratorios (55)</option>
+      </select>
+      <select id="stockFilter" onchange="applyFilters()">
+        <option value="available">Solo con inventario (&gt;0)</option>
+        <option value="all">Todos los productos</option>
+        <option value="low">Stock bajo (1 a 10 und)</option>
+        <option value="out">Agotados (0 und)</option>
+        <option value="bono">Con bonificación</option>
+        <option value="withimg">Con imagen cargada</option>
+        <option value="noimg">Sin imagen aún</option>
+      </select>
+      <select id="pdfFilter" onchange="applyFilters()">
+        <option value="all">Todo el catálogo (645)</option>
+        <option value="new">Nuevos / Sin ficha en PDF (209)</option>
+        <option value="pdf">Líneas en PDF 2026 (436)</option>
+      </select>
+    </div>
+
+    <div class="stats-bar">
+      <div id="resultCount">Mostrando 0 referencias</div>
+      <div class="pill-group" id="priceSwitchArea">
+        <span class="pill active" id="pillL1" onclick="setPriceList('p1')">Precios Lista 1 (Base)</span>
+        <span class="pill" id="pillL2" onclick="setPriceList('p2')">Precios Lista 2 (Preferencial)</span>
+      </div>
+    </div>
+
+    <div class="grid" id="productGrid"></div>
+    <div class="pagination" id="pagination"></div>
+  </main>
+
+  <aside class="cart-panel">
+    <div class="cart-header">
+      <h2>Pedido para Facturar (<span id="cartCount">0</span>)</h2>
+      <button class="btn btn-outline" style="padding:4px 9px;font-size:0.76rem;" onclick="clearCart()">Limpiar</button>
+    </div>
+
+    <div id="clientBanner" class="client-banner" style="display:none;"></div>
+
+    <div class="client-inputs" id="clientManualInputs">
+      <input type="text" id="clientName" placeholder="Cliente / Droguería" oninput="saveClientFields()">
+      <input type="text" id="clientNit" placeholder="NIT / Cédula / Ciudad" oninput="saveClientFields()">
+    </div>
+
+    <div class="cart-items" id="cartItems">
+      <p style="color:var(--muted);font-size:0.84rem;text-align:center;margin-top:30px;">
+        Agrega productos del catálogo para armar el pedido con bonificaciones e IVA listos para facturar.
+      </p>
+    </div>
+
+    <div class="cart-summary">
+      <div class="sum-line"><span>Unidades compradas:</span><strong id="sumUnits">0</strong></div>
+      <div class="sum-line" style="color:var(--teal);"><span>Unidades bonificadas (sin costo):</span><strong id="sumBonus">0</strong></div>
+      <div class="sum-line"><span>Subtotal antes de IVA:</span><strong id="sumSub">$0</strong></div>
+      <div class="sum-line"><span>IVA total:</span><strong id="sumIva">$0</strong></div>
+      <div class="sum-line sum-total"><span>TOTAL A FACTURAR:</span><span id="sumTotal">$0</span></div>
+
+      <div class="cart-btns">
+        <button class="btn btn-wa full" onclick="sendWhatsApp()">📲 Enviar Pedido a WhatsApp</button>
+        <button class="btn btn-outline" onclick="copyOrderText()">Copiar Pedido</button>
+        <button class="btn btn-primary" onclick="downloadOrderExcel()">Orden Excel</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- MODAL SUBIR / EDITAR IMAGEN DE PRODUCTO -->
+<div class="modal-backdrop" id="imgModal">
+  <div class="modal">
+    <h3>Imagen del Producto</h3>
+    <p id="imgModalTitle">Producto</p>
+    <div class="modal-preview" id="imgPreviewBox">
+      <span style="color:#94a3b8;font-size:0.82rem;">Vista previa de la imagen</span>
+    </div>
+    <label class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px;cursor:pointer;">
+      📁 Subir foto desde tu PC / Celular
+      <input type="file" id="imgFileInput" accept="image/*" style="display:none;">
+    </label>
+    <input type="text" id="imgUrlInput" placeholder="O pega aquí el enlace URL de la imagen (https://...)" oninput="previewImageUrl(this.value)">
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeImgModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveProductImage()">Guardar Imagen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PIN DESARROLLADOR -->
+<div class="modal-backdrop" id="pinModal">
+  <div class="modal">
+    <h3>Acceso Modo Desarrollador</h3>
+    <p>Ingresa la clave de administrador (por defecto: <strong>2026</strong>) para editar cliente, lista de precios, fotos y Excel.</p>
+    <input type="password" id="pinInput" placeholder="Clave de desarrollador" onkeydown="if(event.key==='Enter') verifyPin()">
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closePinModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="verifyPin()">Ingresar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DEV_PIN = "2026";
+const DEFAULT_CONFIG = {
+  clientName: "",
+  clientNit: "",
+  assignedList: "p1",
+  lockPriceList: false,
+  whatsappNumber: ""
+};
+const INITIAL_IMAGES = {};
+const INITIAL_PRODUCTS = [{"sku":"GLM-0001","n":"Glomar Lyptus Cherry X 24 Sobres (propoleo, Polen, Marañon)","l":"Glomarfarma","lc":"400 - Glomarfarma","p1":25055,"p2":21297,"b":"","bc":0,"bo":0,"iva":0,"s":228,"pdf":1},{"sku":"GLM-0002","n":"Glomar Lyptus Naranja Miel X 24 Sobres (propoleo,polen,marañon)","l":"Glomarfarma","lc":"400 - Glomarfarma","p1":25055,"p2":21297,"b":"","bc":0,"bo":0,"iva":0,"s":427,"pdf":1},{"sku":"GLM-0003","n":"Glomar Sure Calcio X 400 Gr","l":"Glomarfarma","lc":"400 - Glomarfarma","p1":24800,"p2":21787,"b":"6 -> 1","bc":6,"bo":1,"iva":0,"s":232,"pdf":1},{"sku":"GLM-0004","n":"Glomar Sure Diabetic Vainilla X 400 Gr","l":"Glomarfarma","lc":"400 - Glomarfarma","p1":24800,"p2":21080,"b":"6 -> 1","bc":6,"bo":1,"iva":0,"s":97,"pdf":1},{"sku":"GLM-0005","n":"Glomar Sure Ft Factor De Transferencia X 400gr","l":"Glomarfarma","lc":"400 - Glomarfarma","p1":24800,"p2":21080,"b":"6 -> 1","bc":6,"bo":1,"iva":0,"s":296,"pdf":1},{"sku":"GLM-0006","n":"Glomar Sure Ft Factor De Transferencia X 800 Gr","l":"Glomarfarma","lc":"400 - Glomarfarma","p1":42713,"p2":36306,"b":"","bc":0,"bo":0,"iva":0,"s":181,"pdf":1},{"sku":"GLM-0007","n":"Glomar Sure Kids Vainilla X 400 Gr","l":"Glomarfarma","lc":"400 - Glomarfarma","p1":24800,"p2":21080,"b":"6 -> 1","bc":6,"bo":1,"iva":0,"s":63,"pdf":1},{"sku":"GLM-0008","n":"Glomar Sure Magnesio X 400 Gr","l":"Glomarfarma","lc":"400 - Glomarfarma","p1":24800,"p2":21080,"b":"6 -> 1","bc":6,"bo":1,"iva":0,"s":217,"pdf":1},{"sku":"GLM-0009","n":"Glomar Sure Mama X 400 Gr","l":"Glomarfarma","lc":"400 - Glomarfarma","p1":24886,"p2":19453,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0010","n":"Glomar Sure Omega Vainilla X 400 Gr","l":"Glomarfarma","lc":"400 - Glomarfarma","p1":24800,"p2":21080,"b":"6 -> 1","bc":6,"bo":1,"iva":0,"s":198,"pdf":1},{"sku":"GLM-0011","n":"Glomar Sure Omega X 800 Gr","l":"Glomarfarma","lc":"400 - Glomarfarma","p1":32713,"p2":27816,"b":"","bc":0,"bo":0,"iva":0,"s":138,"pdf":1},{"sku":"GLM-0012","n":"Vyra fire solucion protectora","l":"Glomarfarma","lc":"400 - Glomarfarma","p1":10466,"p2":8900,"b":"6 -> 1, 120 -> 30","bc":6,"bo":1,"iva":0,"s":737,"pdf":1},{"sku":"GLM-0013","n":"Aceite De Manzanilla 20ml X 12","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":14700,"p2":12495,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0014","n":"acetato de aluminio x 120 ml totalmax","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":3875,"p2":3123,"b":"","bc":0,"bo":0,"iva":19,"s":92,"pdf":1},{"sku":"GLM-0015","n":"Agua Oxigenada Frasco X 120 Ml","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":3012,"p2":2560,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0016","n":"Alerfast  fexofenadina 120mg x 10 tab","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":36009,"p2":30607,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":1},{"sku":"GLM-0017","n":"Beclort Inh 200 Dosis (Beclometasona Dipropionato250mcg )","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":18458,"p2":15689,"b":"","bc":0,"bo":0,"iva":0,"s":56,"pdf":1},{"sku":"GLM-0018","n":"Bicarbonato de sodio *450 gr pharmex","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":6000,"p2":6000,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0019","n":"Gentamicina Unguento Oftalmi Tubo X 5 Gr ( Purpucina 3 Mg)","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":17456,"p2":14838,"b":"","bc":0,"bo":0,"iva":0,"s":116,"pdf":1},{"sku":"GLM-0020","n":"HydraStick MED X1 labial eucalip metol calendu jojoba","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":7146,"p2":6074,"b":"","bc":0,"bo":0,"iva":0,"s":30,"pdf":1},{"sku":"GLM-0021","n":"Iprasynt 20MCG/Dosis aerosol inhal fco X 200 dosis (Bromuro de ipratroio)","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":17808,"p2":15136,"b":"","bc":0,"bo":0,"iva":0,"s":90,"pdf":1},{"sku":"GLM-0022","n":"Lincomicina 600 Mg X 10 Amp vitalis","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":24320,"p2":20672,"b":"","bc":0,"bo":0,"iva":0,"s":91,"pdf":1},{"sku":"GLM-0023","n":"Lomotil Tabletas Dispensador X 12 Sobres X 4 Tabletas","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":117585,"p2":99947,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0024","n":"Lumbal Forte-naproxeno sodico 550mg + cafeina 65 mg tabletas recubiertas caja X 36","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":97755,"p2":83092,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0025","n":"Multisoluter Frasco X 50 Ml","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":13083,"p2":11121,"b":"","bc":0,"bo":0,"iva":19,"s":141,"pdf":1},{"sku":"GLM-0026","n":"Noxpirin TS cereza jarabeX120 ml (dextrometorfano bromhidrato 0.3%) tos seca","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":21716,"p2":18459,"b":"","bc":0,"bo":0,"iva":0,"s":41,"pdf":1},{"sku":"GLM-0027","n":"Oftalmotrimax Solución Oftálmica Frasco X 5 Ml ( Polimixina + Neomicina + Dexametasona)","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":7335,"p2":6235,"b":"","bc":0,"bo":0,"iva":0,"s":168,"pdf":1},{"sku":"GLM-0028","n":"OXIMETAZOLINA 0.025% gotas 15ml (oximetazolina, solucion nasal Pediatrica)","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":6983,"p2":5935,"b":"","bc":0,"bo":0,"iva":0,"s":52,"pdf":1},{"sku":"GLM-0029","n":"OXIMETAZOLINA 0.05% gotas 15ml (oximetazolina, solucion nasal Adultos)","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":7347,"p2":6245,"b":"","bc":0,"bo":0,"iva":0,"s":58,"pdf":1},{"sku":"GLM-0030","n":"Procatec 500 Mg X 10 Tabletas ( Ciprofloxacina)","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":5880,"p2":4998,"b":"","bc":0,"bo":0,"iva":0,"s":988,"pdf":1},{"sku":"GLM-0031","n":"Protector Labial Probocca","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":5072,"p2":4311,"b":"","bc":0,"bo":0,"iva":19,"s":120,"pdf":1},{"sku":"GLM-0032","n":"Repelente Rollon  x 60 ml","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":13244,"p2":11257,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0033","n":"Respirin Gripa X 100 Cap Acetamino Cafein Fenil Cetiriz","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":38220,"p2":32487,"b":"","bc":0,"bo":0,"iva":0,"s":1033,"pdf":1},{"sku":"GLM-0034","n":"Ruscus X 30 SOFGEL","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":18926,"p2":16087,"b":"","bc":0,"bo":0,"iva":0,"s":24,"pdf":1},{"sku":"GLM-0035","n":"Salbutamol Inhalador 100 Mcg X 200 Dosis ( Salbumed)","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":7347,"p2":6245,"b":"","bc":0,"bo":0,"iva":0,"s":53,"pdf":1},{"sku":"GLM-0036","n":"Sevedol Extra Fuerte x 60  tab","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":102897,"p2":87462,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":1},{"sku":"GLM-0037","n":"Singripax Tos Jbe 120ml ( Bromhexina Clo+guaifenesina ) Fabrifarma","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":9605,"p2":8164,"b":"","bc":0,"bo":0,"iva":0,"s":10,"pdf":1},{"sku":"GLM-0038","n":"Total Max X 500ml Borojo Guarana","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":26864,"p2":22835,"b":"","bc":0,"bo":0,"iva":0,"s":24,"pdf":1},{"sku":"GLM-0039","n":"Totalmax x 120 ml borojo guarana","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":8613,"p2":7321,"b":"","bc":0,"bo":0,"iva":0,"s":14,"pdf":1},{"sku":"GLM-0040","n":"Valeriana Gotas 60Ml (Valeriana + Pasiflora + Toronjil)","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":11686,"p2":9933,"b":"","bc":0,"bo":0,"iva":0,"s":4,"pdf":1},{"sku":"GLM-0041","n":"Valeriana pasiflora toronjil X 30 Ml Gotas","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":7603,"p2":6462,"b":"","bc":0,"bo":0,"iva":0,"s":33,"pdf":1},{"sku":"GLM-0042","n":"X Ray Dol Tab-capsulares Caja X 80 aceta naprox cafeina","l":"Lab. Varios","lc":"001 - Lab. Varios","p1":145530,"p2":123700,"b":"","bc":0,"bo":0,"iva":0,"s":4,"pdf":1},{"sku":"GLM-0043","n":"Aciclovir 5% Crema Tubo X 15 Gr","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":6010,"p2":5109,"b":"","bc":0,"bo":0,"iva":0,"s":241,"pdf":1},{"sku":"GLM-0044","n":"Aciclovir Suspensión Frasco X 90 Ml","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":15294,"p2":13000,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0045","n":"Albendazol 200 Mg Tabletas Caja X 50","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":23591,"p2":20052,"b":"2 -> 1","bc":2,"bo":1,"iva":0,"s":452,"pdf":1},{"sku":"GLM-0046","n":"Alivium Gripa Cápsulas Caja X 120","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":78456,"p2":66687,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0047","n":"Alivium Gripa Cápsulas Caja X 6","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":5122,"p2":4354,"b":"","bc":0,"bo":0,"iva":0,"s":32,"pdf":1},{"sku":"GLM-0048","n":"Ametrex 500mg x 100Tb (Acetaminofén)","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":18442,"p2":15676,"b":"2 -> 4","bc":2,"bo":4,"iva":0,"s":171,"pdf":1},{"sku":"GLM-0049","n":"Bilsyl 240 Mg Cápsulas Caja X 20 ( Silimarina )","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":19242,"p2":16356,"b":"","bc":0,"bo":0,"iva":0,"s":87,"pdf":1},{"sku":"GLM-0050","n":"Calymac Suspensión Frasco X 360 Ml - Guayaba","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":16019,"p2":13616,"b":"","bc":0,"bo":0,"iva":0,"s":13,"pdf":1},{"sku":"GLM-0051","n":"Calymac Suspensión Frasco X 360 Ml - Mango","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":16019,"p2":13616,"b":"","bc":0,"bo":0,"iva":0,"s":120,"pdf":1},{"sku":"GLM-0052","n":"Calymac Suspensión Frasco X 360 Ml - Melocoton","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":16019,"p2":13616,"b":"","bc":0,"bo":0,"iva":0,"s":8,"pdf":1},{"sku":"GLM-0053","n":"Calymag Suspensión Frasco X 360 Ml - Fresa","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":16018,"p2":13615,"b":"","bc":0,"bo":0,"iva":0,"s":37,"pdf":1},{"sku":"GLM-0054","n":"Calymag Suspensión Frasco X 360 Ml - Menta","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":16019,"p2":13616,"b":"","bc":0,"bo":0,"iva":0,"s":29,"pdf":1},{"sku":"GLM-0055","n":"Cefalexina 500 Mg Cápsulas Caja X 250","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":158099,"p2":134384,"b":"","bc":0,"bo":0,"iva":0,"s":38,"pdf":1},{"sku":"GLM-0056","n":"Cefalexina 500 Mg Cápsulas Caja X 50 Ophalac","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":32162,"p2":27338,"b":"","bc":0,"bo":0,"iva":0,"s":59,"pdf":1},{"sku":"GLM-0057","n":"Ceprax 250 Mg/5 Ml Suspensión Frasco X 100 Ml ( Cefalexina)","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":17306,"p2":14710,"b":"","bc":0,"bo":0,"iva":0,"s":97,"pdf":1},{"sku":"GLM-0058","n":"Ceprax 500 Mg Cápsulas Caja X 50 ( Cefalexina)","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":33599,"p2":28559,"b":"","bc":0,"bo":0,"iva":0,"s":217,"pdf":1},{"sku":"GLM-0059","n":"Clenburil Jb 60ml (Desloratadina+Fenilefrina)","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":19655,"p2":16707,"b":"1 -> 3","bc":1,"bo":3,"iva":0,"s":91,"pdf":1},{"sku":"GLM-0060","n":"Clonidina 0.150 Mg Tabletas Caja X 250","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":45307,"p2":38511,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0061","n":"Difenhidramina 50 Mg Cápsulas Caja X 50","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":16930,"p2":14391,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0062","n":"Difenhidramina Jarabe Frasco X 120 Ml","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":10296,"p2":8751,"b":"2 -> 1","bc":2,"bo":1,"iva":0,"s":51,"pdf":1},{"sku":"GLM-0063","n":"Enalapril 20 Mg Tabletas Caja X 250 anglo","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":52479,"p2":44607,"b":"","bc":0,"bo":0,"iva":0,"s":37,"pdf":1},{"sku":"GLM-0064","n":"Enalapril 20 Mg Tabletas Caja X 30","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":6622,"p2":5628,"b":"","bc":0,"bo":0,"iva":0,"s":24,"pdf":1},{"sku":"GLM-0065","n":"Glibenclamida 5 Mg Tabletas Caja X 250","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":15590,"p2":13252,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0066","n":"Glibenclamida 5 Mg Tabletas sbr 10 unid","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":1,"p2":1,"b":"","bc":0,"bo":0,"iva":0,"s":2128,"pdf":1},{"sku":"GLM-0067","n":"Hidrocortisona Tubo X 15 Gr Crema","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":6872,"p2":5841,"b":"","bc":0,"bo":0,"iva":0,"s":10,"pdf":1},{"sku":"GLM-0068","n":"Hidroxicina Hcl 0.25% Jarebe Frasco X 120 Ml","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":10871,"p2":9240,"b":"","bc":0,"bo":0,"iva":0,"s":25,"pdf":1},{"sku":"GLM-0069","n":"Hidroxicina Hcl 25mg X 250 Tabletas","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":61538,"p2":52307,"b":"","bc":0,"bo":0,"iva":0,"s":7,"pdf":1},{"sku":"GLM-0070","n":"Hongicil 2% Shampoo Medicado Frasco X 100 Ml ( Ketoconazol)","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":16106,"p2":13690,"b":"3 -> 3","bc":3,"bo":3,"iva":0,"s":102,"pdf":1},{"sku":"GLM-0071","n":"Hongicil 2% Shampoo Medicado Frasco X 200 Ml ( Ketoconazol)","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":28114,"p2":23897,"b":"3 -> 3","bc":3,"bo":3,"iva":0,"s":152,"pdf":1},{"sku":"GLM-0072","n":"Ion K Solución Oral 31.2% Frasco X 180 Ml ( Gluconato De Potasio)","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":21979,"p2":18682,"b":"","bc":0,"bo":0,"iva":0,"s":15,"pdf":1},{"sku":"GLM-0073","n":"lorigal Omeprazol 20 Mg Cápsulas Caja X 250","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":50467,"p2":42897,"b":"","bc":0,"bo":0,"iva":0,"s":40,"pdf":1},{"sku":"GLM-0074","n":"Matacallo Vencedor Tubo X 4 Gr","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":7634,"p2":6489,"b":"","bc":0,"bo":0,"iva":0,"s":121,"pdf":1},{"sku":"GLM-0075","n":"Metformina Clorhidrato 850 Mg Tabletas Caja X 30","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":12158,"p2":10334,"b":"6 -> 3","bc":6,"bo":3,"iva":0,"s":611,"pdf":1},{"sku":"GLM-0076","n":"Metocarbamol 750 Mg Tabletas Caja X 250","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":108494,"p2":92220,"b":"","bc":0,"bo":0,"iva":0,"s":7,"pdf":1},{"sku":"GLM-0077","n":"Mevican 7,5mg x 10 tabletas (Meloxicam)","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":3012,"p2":2560,"b":"","bc":0,"bo":0,"iva":0,"s":15,"pdf":1},{"sku":"GLM-0078","n":"Mucotrop Jarabe Frasco X 120 Ml - Adulto","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":8722,"p2":7413,"b":"","bc":0,"bo":0,"iva":0,"s":148,"pdf":1},{"sku":"GLM-0079","n":"Mucotrop Jarabe Frasco X 120 Ml - Niños","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":8434,"p2":7169,"b":"","bc":0,"bo":0,"iva":0,"s":83,"pdf":1},{"sku":"GLM-0080","n":"Nitrofurazona Pomada Topica 0.2% Tubo X 40 G","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":11582,"p2":9845,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0081","n":"Omeprazol 20 Mg Cápsulas Caja X 250","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":47031,"p2":39976,"b":"","bc":0,"bo":0,"iva":0,"s":21,"pdf":1},{"sku":"GLM-0082","n":"Pirel 250 Mg Tabletas Caja X 3 ( Pamoato De Pirantel)","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":4648,"p2":3951,"b":"","bc":0,"bo":0,"iva":0,"s":100,"pdf":1},{"sku":"GLM-0083","n":"Pirel 5% Suspensión Frasco X 30 Ml ( Pamoato De Pirantel)","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":8434,"p2":7169,"b":"","bc":0,"bo":0,"iva":0,"s":84,"pdf":1},{"sku":"GLM-0084","n":"Rhinospray 0.05 % Nebulizador X 18 Ml ( Furoato De Mometasona)","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":23066,"p2":19606,"b":"","bc":0,"bo":0,"iva":0,"s":59,"pdf":1},{"sku":"GLM-0085","n":"Soriderm Champu Anticaspa Frasco X 250 Ml","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":21017,"p2":17864,"b":"","bc":0,"bo":0,"iva":0,"s":18,"pdf":1},{"sku":"GLM-0086","n":"Soriderm Loción Frasco X 120 Ml","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":12158,"p2":10334,"b":"","bc":0,"bo":0,"iva":0,"s":10,"pdf":1},{"sku":"GLM-0087","n":"Teolixir Jarabe Frasco X 240 Ml","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":11445,"p2":9729,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0088","n":"Trinsicon Crema Tubo X 20 Gr ( Clotrimazol + Neomicina + Dexametasona)","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":8472,"p2":7201,"b":"","bc":0,"bo":0,"iva":0,"s":225,"pdf":1},{"sku":"GLM-0089","n":"Veran D 20 Mg Cápsulas Caja X 10 ( Piroxicam )","l":"Lab. Anglopharma","lc":"002 - Lab. Anglopharma","p1":7947,"p2":6755,"b":"","bc":0,"bo":0,"iva":0,"s":325,"pdf":1},{"sku":"GLM-0090","n":"Amoxicilina 500 Mg Cápsulas Caja X 50","l":"Lab. American Generics","lc":"004 - Lab. American Generics","p1":19980,"p2":16983,"b":"","bc":0,"bo":0,"iva":0,"s":160,"pdf":1},{"sku":"GLM-0091","n":"Diclofenaco 100 Mg Cápsulas Caja X 20","l":"Lab. American Generics","lc":"004 - Lab. American Generics","p1":9921,"p2":8121,"b":"","bc":0,"bo":0,"iva":0,"s":101,"pdf":1},{"sku":"GLM-0092","n":"Naproxeno 500 Mg Tabletas Caja X 10","l":"Lab. American Generics","lc":"004 - Lab. American Generics","p1":5068,"p2":4308,"b":"","bc":0,"bo":0,"iva":0,"s":60,"pdf":1},{"sku":"GLM-0093","n":"Alka - Seltzer Tabletas Efervescentes Caja X 60","l":"Lab. Bayer","lc":"006 - Lab. Bayer","p1":62842,"p2":53416,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":0},{"sku":"GLM-0094","n":"Activa 21 Grageas Caja X 21 ( Levonorgestrel 0.15 Mg / Etinilestradiol 0.03 Mg)","l":"Lab. Bcn Medical","lc":"007 - Lab. Bcn Medical","p1":7275,"p2":6183,"b":"","bc":0,"bo":0,"iva":0,"s":326,"pdf":1},{"sku":"GLM-0095","n":"Sacrusyt 100 Mcg Aerosol Inhalador X 200 Dosis ( Salbutamol)","l":"Lab. Bcn Medical","lc":"007 - Lab. Bcn Medical","p1":15959,"p2":13565,"b":"","bc":0,"bo":0,"iva":0,"s":259,"pdf":1},{"sku":"GLM-0096","n":"Activiral 5% Crema Tópica Tubo X 15 Gr ( Aciclovir)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":6435,"p2":5470,"b":"","bc":0,"bo":0,"iva":0,"s":368,"pdf":0},{"sku":"GLM-0097","n":"Activiral 800 Mg Tabletas Caja X 10 (aciclovir)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":16106,"p2":13690,"b":"","bc":0,"bo":0,"iva":0,"s":180,"pdf":0},{"sku":"GLM-0098","n":"Ainedix Ac 100 Mg Tabletas Caja X 10 ( Aceclofenaco)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":8059,"p2":6850,"b":"","bc":0,"bo":0,"iva":0,"s":412,"pdf":0},{"sku":"GLM-0099","n":"Aircys 10 Mg Tabletas Caja X 10 ( Montelukast)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":9696,"p2":8242,"b":"","bc":0,"bo":0,"iva":0,"s":24,"pdf":1},{"sku":"GLM-0100","n":"Aircys 10 Mg Tabletas Caja X 30 ( Montelukast)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":28938,"p2":24598,"b":"","bc":0,"bo":0,"iva":0,"s":34,"pdf":1},{"sku":"GLM-0101","n":"Alginacid Suspensión X 360 Ml ( Hidroxido De Aluminio + Carbonato De Magnesio)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":20166,"p2":17141,"b":"","bc":0,"bo":0,"iva":0,"s":81,"pdf":0},{"sku":"GLM-0102","n":"Antepsin 1 Gr Tabletas Masticables Caja X 10 ( Sucralfato)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":10371,"p2":8815,"b":"","bc":0,"bo":0,"iva":0,"s":42,"pdf":1},{"sku":"GLM-0103","n":"Asmiket 1 Mg Tabletas Caja X 30 ( Ketotifeno)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":7235,"p2":6149,"b":"","bc":0,"bo":0,"iva":0,"s":100,"pdf":1},{"sku":"GLM-0104","n":"Asmiket 1 Mg/5 Ml Jarabe Frasco X 100 Ml ( Ketotifeno)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":12695,"p2":10791,"b":"","bc":0,"bo":0,"iva":0,"s":130,"pdf":1},{"sku":"GLM-0105","n":"Atorfit 10 Mg X 30 Tabletas (atorvastatina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":12557,"p2":10674,"b":"","bc":0,"bo":0,"iva":0,"s":5,"pdf":1},{"sku":"GLM-0106","n":"Atorfit 20 Mg X 30 Tabletas (atorvastatina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":17331,"p2":14731,"b":"","bc":0,"bo":0,"iva":0,"s":24,"pdf":1},{"sku":"GLM-0107","n":"Avalpric 250 Mg/5 Ml X 120 Ml Jarabe (acido Valproico)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":12158,"p2":10334,"b":"","bc":0,"bo":0,"iva":0,"s":40,"pdf":1},{"sku":"GLM-0108","n":"Azitrobac 200 Mg X 15 Ml Suspensión (azitromicina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":13445,"p2":11428,"b":"","bc":0,"bo":0,"iva":0,"s":173,"pdf":1},{"sku":"GLM-0109","n":"Azitrobac 500 Mg X 3 Tabletas (azitromicina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":10371,"p2":8815,"b":"6 -> 3","bc":6,"bo":3,"iva":0,"s":894,"pdf":1},{"sku":"GLM-0110","n":"Bacmicine 250 Mg/5 Ml X 100 Ml Suspensión (sultamicilina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":61001,"p2":51851,"b":"","bc":0,"bo":0,"iva":0,"s":35,"pdf":1},{"sku":"GLM-0111","n":"Bacmicine 375 Mg X 10 Tabletas (sultamicilina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":48168,"p2":40943,"b":"","bc":0,"bo":0,"iva":0,"s":46,"pdf":1},{"sku":"GLM-0112","n":"Bacmicine 750 Mg X 10 Tabletas (sultamicilina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":61001,"p2":51851,"b":"","bc":0,"bo":0,"iva":0,"s":36,"pdf":1},{"sku":"GLM-0113","n":"Bilaxan X 10 Sbres Laxante (boldo, Rubibardo Cas. Sagrad) Lab Q","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":36173,"p2":30747,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":0},{"sku":"GLM-0114","n":"Buprofen 100 Mg / 5 Ml Suspensión X 120 Ml ( Ibuprofeno)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":11733,"p2":9973,"b":"","bc":0,"bo":0,"iva":0,"s":116,"pdf":0},{"sku":"GLM-0115","n":"Cindimizol 150 Mg X 5 Cápsulas (fluconazol )","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":5598,"p2":4758,"b":"","bc":0,"bo":0,"iva":0,"s":111,"pdf":1},{"sku":"GLM-0116","n":"Cindimizol 200 Mg X 5 Cápsulas (fluconazol )","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":9009,"p2":7658,"b":"","bc":0,"bo":0,"iva":0,"s":235,"pdf":1},{"sku":"GLM-0117","n":"Clinbac 300 Mg Cápsulas Caja X 24 ( Clindamicina)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":27289,"p2":23196,"b":"","bc":0,"bo":0,"iva":0,"s":86,"pdf":0},{"sku":"GLM-0118","n":"Clinbac 600 Mg Inyectable Caja X 2 Ampollas ( Clindamicina)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":18142,"p2":15421,"b":"","bc":0,"bo":0,"iva":0,"s":83,"pdf":0},{"sku":"GLM-0119","n":"Cloxidin 250 Mg/5 Ml X 80 Ml Suspensión (dicloxacilina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":14607,"p2":12416,"b":"","bc":0,"bo":0,"iva":0,"s":30,"pdf":1},{"sku":"GLM-0120","n":"Cloxidin 500 Mg X 20 Cápsulas (dicloxacilina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":23341,"p2":19840,"b":"","bc":0,"bo":0,"iva":0,"s":53,"pdf":1},{"sku":"GLM-0121","n":"Cortidexan 6 Mg X 10 Tabletas (deflazacort)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":10233,"p2":8698,"b":"3 -> 1","bc":3,"bo":1,"iva":0,"s":41,"pdf":1},{"sku":"GLM-0122","n":"Cortisolona 1% Crema Tubo X 20 Gr ( Hidrocortisona)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":7784,"p2":6617,"b":"","bc":0,"bo":0,"iva":0,"s":120,"pdf":0},{"sku":"GLM-0123","n":"Cortisolona 1% Crema Tubo X 40 Gr ( Hidrocortisona)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":9584,"p2":8146,"b":"","bc":0,"bo":0,"iva":0,"s":113,"pdf":0},{"sku":"GLM-0124","n":"Dermiquem 1% Crema X 60 Gr ( Sulfadiazina De Plata)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":19242,"p2":16356,"b":"","bc":0,"bo":0,"iva":0,"s":31,"pdf":0},{"sku":"GLM-0125","n":"Deucilina 1000mg X 20 Tab (ampicilina )lab Qui","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":24015,"p2":20413,"b":"","bc":0,"bo":0,"iva":0,"s":31,"pdf":0},{"sku":"GLM-0126","n":"Deucilina 500 Mg Tabletas Caja X 100 ( Ampicilina Anhidra)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":65774,"p2":55908,"b":"","bc":0,"bo":0,"iva":0,"s":13,"pdf":0},{"sku":"GLM-0127","n":"Deucilina 500 Mg Tabletas Caja X 30 ( Ampicilina Anhidra)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":20879,"p2":17747,"b":"3 -> 1","bc":3,"bo":1,"iva":0,"s":16,"pdf":0},{"sku":"GLM-0128","n":"Diflenac 100 Mg X 20 Cápsulas (diclofenaco Sodico)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":10921,"p2":9283,"b":"","bc":0,"bo":0,"iva":0,"s":454,"pdf":1},{"sku":"GLM-0129","n":"Dizmopraz 30 Mg X 28 Cápsulas (lansoprazol)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":17605,"p2":14965,"b":"","bc":0,"bo":0,"iva":0,"s":71,"pdf":1},{"sku":"GLM-0130","n":"Dosaldin Tabletas Caja X 20 ( Dipirona + Isometepteno + Cafeina)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":18018,"p2":15315,"b":"","bc":0,"bo":0,"iva":0,"s":214,"pdf":0},{"sku":"GLM-0131","n":"Espasmydol Tabletas Recubiertas Caja X 20 ( Metocarbamol 500 Mg + Ibuprofeno 200 Mg)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":22516,"p2":19139,"b":"","bc":0,"bo":0,"iva":0,"s":1309,"pdf":0},{"sku":"GLM-0132","n":"Eumoxin Duo Forte X 100 Ml Suspensión (amoxicilina 200 Mg+sulbactan Pivoxil 50 Ml)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":45319,"p2":38521,"b":"2 -> 1","bc":2,"bo":1,"iva":0,"s":36,"pdf":1},{"sku":"GLM-0133","n":"Eumoxina 250 Mg/5 Ml X 100 Ml (amoxicilina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":12158,"p2":10334,"b":"","bc":0,"bo":0,"iva":0,"s":228,"pdf":1},{"sku":"GLM-0134","n":"Eutarpan 1 Mg/1 Ml Jarabe Frasco X 120 Ml ( Loratadina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":12832,"p2":10907,"b":"","bc":0,"bo":0,"iva":0,"s":42,"pdf":1},{"sku":"GLM-0135","n":"Finapar 200 Mg X 2 Tabletas (albendazol)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":2012,"p2":1710,"b":"","bc":0,"bo":0,"iva":0,"s":342,"pdf":1},{"sku":"GLM-0136","n":"Finapar 400 Mg X 20 Ml Suspension (albendazol)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":6010,"p2":5109,"b":"","bc":0,"bo":0,"iva":0,"s":19,"pdf":1},{"sku":"GLM-0137","n":"Flurinex 500 Mg X 14 Tabletas (levofloxacino)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":22516,"p2":19139,"b":"","bc":0,"bo":0,"iva":0,"s":72,"pdf":1},{"sku":"GLM-0138","n":"Fungisterol 100 Mg/5 Ml Susp X 60ml (ketoconazol)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":8434,"p2":7169,"b":"","bc":0,"bo":0,"iva":0,"s":37,"pdf":1},{"sku":"GLM-0139","n":"Fungisterol 200 Mg X 10 Tabletas (ketoconazol)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":6422,"p2":5429,"b":"","bc":0,"bo":0,"iva":0,"s":204,"pdf":1},{"sku":"GLM-0140","n":"Fungisterol Crema 2% Tubo X 30 Gr (ketoconazol)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":7584,"p2":6447,"b":"","bc":0,"bo":0,"iva":0,"s":146,"pdf":1},{"sku":"GLM-0141","n":"Fungisterol Shampoo 2% Frasco X 100 Ml (ketoconazol)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":16106,"p2":13690,"b":"","bc":0,"bo":0,"iva":0,"s":552,"pdf":1},{"sku":"GLM-0142","n":"Fungisterol Shampoo 2% Frasco X 200 Ml (ketoconazol)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":28114,"p2":23897,"b":"","bc":0,"bo":0,"iva":0,"s":606,"pdf":1},{"sku":"GLM-0143","n":"Gastritan Suspensión X 360 Ml ( Hidróxido Aluminio + Hidróxido De Magnesio + Simeticona)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":20167,"p2":17142,"b":"","bc":0,"bo":0,"iva":0,"s":27,"pdf":1},{"sku":"GLM-0144","n":"Grazilan 120 Mg X 40 Capsulas (orlistat)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":83517,"p2":70989,"b":"","bc":0,"bo":0,"iva":0,"s":13,"pdf":1},{"sku":"GLM-0145","n":"Hemetil 4 Mg / Ml Solución Oral Gotas X 30 Ml ( Metoclopramida)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":8059,"p2":6850,"b":"","bc":0,"bo":0,"iva":0,"s":269,"pdf":0},{"sku":"GLM-0146","n":"Kliacef 500 Mg X 20 Tabletas (cefradina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":24750,"p2":21038,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0147","n":"Kolantil 200 Mg X 15 Tabletas (trimebutina Maleato)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":11883,"p2":10100,"b":"","bc":0,"bo":0,"iva":0,"s":83,"pdf":1},{"sku":"GLM-0148","n":"Ligaril D 500 Mg X 30 Tabletas (dipirona)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":13645,"p2":11598,"b":"","bc":0,"bo":0,"iva":0,"s":57,"pdf":1},{"sku":"GLM-0149","n":"Lipobil Jarabe Frasco X 120 Ml ( Cascara Sagrada + Boldo + Ruibarbo)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":12582,"p2":10695,"b":"3 -> 1","bc":3,"bo":1,"iva":0,"s":7,"pdf":0},{"sku":"GLM-0150","n":"Liroderm Loción Frasco X 60 Ml (crotamiton 10%)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":13157,"p2":11184,"b":"","bc":0,"bo":0,"iva":0,"s":22,"pdf":0},{"sku":"GLM-0151","n":"Lozarten 100 Mg Tabletas Caja X 30 ( Losartan Potasico)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":11608,"p2":9867,"b":"","bc":0,"bo":0,"iva":0,"s":16,"pdf":1},{"sku":"GLM-0152","n":"Macromycin 250 Mg /5 Ml Supensión Frasco X 50 Ml ( Claritromicina)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":38485,"p2":32715,"b":"","bc":0,"bo":0,"iva":0,"s":24,"pdf":0},{"sku":"GLM-0153","n":"Macromycin 500 Mg Tabletas Caja X 10 ( Claritromicina)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":32075,"p2":27263,"b":"","bc":0,"bo":0,"iva":0,"s":44,"pdf":0},{"sku":"GLM-0154","n":"Metroxazide X 120 Ml Suspensión (metronidazol 250 Mg+nifuroxazide 200 Mg))","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":19242,"p2":16356,"b":"","bc":0,"bo":0,"iva":0,"s":58,"pdf":1},{"sku":"GLM-0155","n":"Metroxazide X 18 Tabletas (metronidazol 600 Mg+nifuroxazide 200 Mg)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":16106,"p2":13690,"b":"","bc":0,"bo":0,"iva":0,"s":1029,"pdf":1},{"sku":"GLM-0156","n":"Mexican 15 Mg X 10 Tabletas (meloxicam)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":7372,"p2":6266,"b":"","bc":0,"bo":0,"iva":0,"s":231,"pdf":1},{"sku":"GLM-0157","n":"Mexican 7.5 Mg X 30 Tabletas (meloxicam)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":8334,"p2":7084,"b":"","bc":0,"bo":0,"iva":0,"s":114,"pdf":1},{"sku":"GLM-0158","n":"Miclotrim 1% Crema Tubo X 40 Gr ( Clotrimazol)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":7871,"p2":6691,"b":"","bc":0,"bo":0,"iva":0,"s":72,"pdf":0},{"sku":"GLM-0159","n":"Micotrazol 100 Mg X 4 Cápsulas (itraconazol)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":12695,"p2":10791,"b":"","bc":0,"bo":0,"iva":0,"s":34,"pdf":1},{"sku":"GLM-0160","n":"Mio - Relax 4 Mg Tabletas Caja X 10 ( Tizanidina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":20879,"p2":17747,"b":"","bc":0,"bo":0,"iva":0,"s":120,"pdf":1},{"sku":"GLM-0161","n":"Miodin - B12 Solución Inyectable 2 Ml X 6 Ampollas ( Tiamina + Piridoxina + Cianocobalamina)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":42607,"p2":36216,"b":"","bc":0,"bo":0,"iva":0,"s":108,"pdf":0},{"sku":"GLM-0162","n":"Nausyvom 50 Mg Tabletas Caja X 12 ( Dimenhidrinato)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":2861,"p2":2432,"b":"","bc":0,"bo":0,"iva":0,"s":65,"pdf":0},{"sku":"GLM-0163","n":"Nausyvom 50Mg x 84Tab","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":16443,"p2":13976,"b":"2 -> 1","bc":2,"bo":1,"iva":0,"s":49,"pdf":0},{"sku":"GLM-0164","n":"Newtarpan 2.5 Mg/5 Ml Jarabe Frasco X 120 Ml ( Desloratadina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":15294,"p2":13000,"b":"","bc":0,"bo":0,"iva":0,"s":27,"pdf":1},{"sku":"GLM-0165","n":"Nitoxipar 100 Mg/5 Ml X 30 Ml Polvo (nitazoxanida)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":17605,"p2":14965,"b":"","bc":0,"bo":0,"iva":0,"s":120,"pdf":1},{"sku":"GLM-0166","n":"Nitoxipar 500 Mg X 6 Tabletas (nitazoxanida)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":12833,"p2":10908,"b":"","bc":0,"bo":0,"iva":0,"s":606,"pdf":1},{"sku":"GLM-0167","n":"Osteosan 0.5 % Gel X 40 Gr Tubo ( Piroxicam)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":7722,"p2":6564,"b":"","bc":0,"bo":0,"iva":0,"s":73,"pdf":1},{"sku":"GLM-0168","n":"Osteosan 20 Mg X 10 Cápsulas (piroxicam)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":6422,"p2":5459,"b":"","bc":0,"bo":0,"iva":0,"s":43,"pdf":1},{"sku":"GLM-0169","n":"Osteosan 40 Mg X 3 Ampollas (piroxicam)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":13619,"p2":11576,"b":"","bc":0,"bo":0,"iva":0,"s":257,"pdf":1},{"sku":"GLM-0170","n":"Perclusone 150 Mg/5 Ml Suspensión Frasco X 120 Ml ( Naproxeno)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":13445,"p2":11428,"b":"","bc":0,"bo":0,"iva":0,"s":46,"pdf":1},{"sku":"GLM-0171","n":"Prozidex 20 Mg Cápsulas Caja X 30 ( Omeprazol)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":7584,"p2":6447,"b":"","bc":0,"bo":0,"iva":0,"s":13,"pdf":1},{"sku":"GLM-0172","n":"Prozidex 20 Mg Cápsulas Microgranulos Caja X 250 ( Omeprazol)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":50467,"p2":42897,"b":"","bc":0,"bo":0,"iva":0,"s":18,"pdf":1},{"sku":"GLM-0173","n":"Reflexal 750 Mg Tabletas Caja X 20 ( Metocarbamol)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":12007,"p2":10206,"b":"","bc":0,"bo":0,"iva":0,"s":95,"pdf":0},{"sku":"GLM-0174","n":"Resfrygrip Congest Jb Fco X 60 Ml ( Acetaminofen 500 Mg + Loratadina 5 Mg + Fenilefrina 100 Mg)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":13519,"p2":11491,"b":"","bc":0,"bo":0,"iva":0,"s":300,"pdf":0},{"sku":"GLM-0175","n":"Resfrygrip Plus Cápsulas Caja X 100 ( Acetaminofen 500 Mg + Fenilefrina 10 Mg + Cetiricina 5 Mg+cafe 30 Mg)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":67185,"p2":57107,"b":"","bc":0,"bo":0,"iva":0,"s":90,"pdf":0},{"sku":"GLM-0176","n":"Resfrygrip Plus Sobres Caja X 25 (acetaminofen 500 Mg + Loratadina 5 Mg + Fenilefrina 10 Mg)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":63049,"p2":53592,"b":"","bc":0,"bo":0,"iva":0,"s":90,"pdf":0},{"sku":"GLM-0177","n":"Salydrat Frutas Tropicales X 25 Sobres ( Sales De Rehidratación Oral)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":60600,"p2":51510,"b":"3 -> 1","bc":3,"bo":1,"iva":0,"s":150,"pdf":0},{"sku":"GLM-0178","n":"Seamib 1 Gr X 2 Tabletas (secnidazol)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":4786,"p2":4068,"b":"","bc":0,"bo":0,"iva":0,"s":131,"pdf":1},{"sku":"GLM-0179","n":"Sertranquil 50 Mg X 10 Tabletas (sertralina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":8967,"p2":7621,"b":"","bc":0,"bo":0,"iva":0,"s":240,"pdf":1},{"sku":"GLM-0180","n":"Spabolaz Polvo Para Reconstituir X 12 Sobres - Mandarina ( Psyllium Semilla)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":20066,"p2":17056,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":0},{"sku":"GLM-0181","n":"Stolip 600 Mg Tabletas Caja X 20 ( Gemfibrozilo)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":15956,"p2":13563,"b":"3 -> 1, 6 -> 4","bc":3,"bo":1,"iva":0,"s":24,"pdf":0},{"sku":"GLM-0182","n":"Supribac F X 10 Tabletas (trim 160 Mg+sulfa 800 Mg)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":9696,"p2":8242,"b":"","bc":0,"bo":0,"iva":0,"s":277,"pdf":1},{"sku":"GLM-0183","n":"Tramydol tramadol 100mg","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":6010,"p2":5108,"b":"","bc":0,"bo":0,"iva":0,"s":124,"pdf":0},{"sku":"GLM-0184","n":"Triclimbac Solucion Ótica X 10 Ml ( Lidocaina + Ciprofloxacina + Betametasona)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":9696,"p2":8242,"b":"","bc":0,"bo":0,"iva":0,"s":787,"pdf":0},{"sku":"GLM-0185","n":"Tudermifar 0.05% Crema Tubo X 20 Gr ( Betametasona)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":6435,"p2":5470,"b":"","bc":0,"bo":0,"iva":0,"s":105,"pdf":0},{"sku":"GLM-0186","n":"Tudermifar 0.05% Crema Tubo X 40 Gr ( Betametasona)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":8009,"p2":6807,"b":"","bc":0,"bo":0,"iva":0,"s":117,"pdf":0},{"sku":"GLM-0187","n":"Urinex Moxifloxacina 400 Mg","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":21704,"p2":18448,"b":"","bc":0,"bo":0,"iva":0,"s":70,"pdf":1},{"sku":"GLM-0188","n":"Vaio 24 Mg Tabletas Caja X 30 ( Betahistina Diclorhidrato)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":77094,"p2":65530,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0189","n":"Vaio 8 Mg Tabletas Caja X 30 ( Betahistina Diclorhidrato)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":26202,"p2":22272,"b":"","bc":0,"bo":0,"iva":0,"s":151,"pdf":1},{"sku":"GLM-0190","n":"Verelis 20 Mg X 2 Tableta (tadalafilo)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":6422,"p2":5459,"b":"","bc":0,"bo":0,"iva":0,"s":944,"pdf":1},{"sku":"GLM-0191","n":"Verelis 20 Mg X 4 Tabletas ( Tadalafilo)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":10921,"p2":9283,"b":"","bc":0,"bo":0,"iva":0,"s":466,"pdf":1},{"sku":"GLM-0192","n":"Vibradox 100 Mg Cápsulas Caja X 14 ( Doxiciclina)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":13107,"p2":11141,"b":"","bc":0,"bo":0,"iva":0,"s":101,"pdf":0},{"sku":"GLM-0193","n":"Vigradina 50 Mg X 2 Tabletas (sildenafilo)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":3411,"p2":2899,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0194","n":"Vigradina 50 Mg X 4 Tabletas (sildenafilo)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":6422,"p2":5459,"b":"","bc":0,"bo":0,"iva":0,"s":448,"pdf":1},{"sku":"GLM-0195","n":"Viol-dol 100 Mg X 100 Tabletas ( Acido Acetil Salicilico)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":14869,"p2":12639,"b":"","bc":0,"bo":0,"iva":0,"s":73,"pdf":1},{"sku":"GLM-0196","n":"Viol-dol 100 Mg X 250 Tabletas (acido Acetil Salicilico)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":35736,"p2":30375,"b":"","bc":0,"bo":0,"iva":0,"s":54,"pdf":1},{"sku":"GLM-0197","n":"Zeridil 5 Mg/ Ml Jarabe Frasco X 60 Ml ( Cetirizina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":9696,"p2":8242,"b":"","bc":0,"bo":0,"iva":0,"s":45,"pdf":1},{"sku":"GLM-0198","n":"Zifluvis 200 Mg X 30 Sobres (n-acetil Cisteina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":25740,"p2":21879,"b":"","bc":0,"bo":0,"iva":0,"s":34,"pdf":1},{"sku":"GLM-0199","n":"Zifluvis 600 Mg X 30 Sobres (n-acetil Cisteina)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":43745,"p2":37183,"b":"","bc":0,"bo":0,"iva":0,"s":53,"pdf":1},{"sku":"GLM-0200","n":"Zifluvis Jarabe X 120 Ml ( N - Acetil Cisteina 4g/100ml)","l":"Lab. Bioquifar","lc":"008 - Lab. Bioquifar","p1":12695,"p2":10791,"b":"","bc":0,"bo":0,"iva":0,"s":18,"pdf":1},{"sku":"GLM-0201","n":"Zivical D Tabletas Caja X 20 ( Carbonato De Calcio + Vitamina D)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":10158,"p2":8635,"b":"","bc":0,"bo":0,"iva":0,"s":77,"pdf":0},{"sku":"GLM-0202","n":"Zivical Tabletas Caja X 30 ( Carbonato De Calcio 1500mg)","l":"Lab Labquifar","lc":"099 - Lab Labquifar","p1":12582,"p2":10695,"b":"","bc":0,"bo":0,"iva":0,"s":95,"pdf":0},{"sku":"GLM-0203","n":"Betazkov 8 Mg/2 Ml Solución Inyectable Caja X 5 Ampollas ( Betametasona)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":12554,"p2":10671,"b":"","bc":0,"bo":0,"iva":0,"s":64,"pdf":1},{"sku":"GLM-0204","n":"Blasket Solución Oftálmica Frasco X 5 Ml ( Ketotifeno Fumarato 0.5mg/ml)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":37623,"p2":31980,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0205","n":"Cifloblas Solución Oftálmica Frasco X 5 Ml ( Ciprofloxacina 0.3%)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":15511,"p2":13185,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0206","n":"Dexablas 4 Mg/ml Solución Inyectable Caja X 5 Ampollas ( Dexametasona)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":12444,"p2":10577,"b":"","bc":0,"bo":0,"iva":0,"s":261,"pdf":1},{"sku":"GLM-0207","n":"Dexablas 8 Mg/2 Ml Solución Inyectable Caja X 5 Ampollas ( Dexametasona)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":12444,"p2":10577,"b":"","bc":0,"bo":0,"iva":0,"s":228,"pdf":1},{"sku":"GLM-0208","n":"Dilaoftal Solución Oftálmica Frasco X 5 Ml ( Nafazolina Clorhidrato 1mg/ml)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":7826,"p2":6652,"b":"","bc":0,"bo":0,"iva":0,"s":15,"pdf":1},{"sku":"GLM-0209","n":"Diuxoton - N Butil Bromuro De Hioscina 20mg/ml Solución Inyectable Caja X 5","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":19051,"p2":16194,"b":"","bc":0,"bo":0,"iva":0,"s":44,"pdf":1},{"sku":"GLM-0210","n":"Espasmokov Comp Amp X 5 (hios-dipi)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":29547,"p2":25114,"b":"","bc":0,"bo":0,"iva":0,"s":11,"pdf":1},{"sku":"GLM-0211","n":"Fenacof Solución Oftálmica Frasco X 5 Ml ( Diclofenaco Sodico 0,1%)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":15115,"p2":12847,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0212","n":"Fluoftal Suspensión Oftálmica Frasco X 5 Ml ( Fluorometalona 0.1%)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":30863,"p2":26233,"b":"","bc":0,"bo":0,"iva":0,"s":14,"pdf":1},{"sku":"GLM-0213","n":"Iverblas Suspensión Oral Frasco X 5 Ml ( Ivermectina 0.6%)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":12039,"p2":10233,"b":"","bc":0,"bo":0,"iva":0,"s":24,"pdf":1},{"sku":"GLM-0214","n":"Lagrikov 0.5% Solución Oftálmica Frasco X 15 Ml ( Carboximetilcelulosa Sódica)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":11691,"p2":9937,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0215","n":"Meblainex 15 Mg/1.5 Ml Solución Inyectable Caja X 5 Ampollas ( Meloxican)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":16411,"p2":13946,"b":"","bc":0,"bo":0,"iva":0,"s":132,"pdf":1},{"sku":"GLM-0216","n":"Prednioftal F Gts X 5 Ml (prednisolona )","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":44453,"p2":37785,"b":"","bc":0,"bo":0,"iva":0,"s":13,"pdf":1},{"sku":"GLM-0217","n":"Prestiblock Solución Oftálmica Frasco X 5 Ml ( Timolol 0.5%)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":8525,"p2":7246,"b":"","bc":0,"bo":0,"iva":0,"s":14,"pdf":1},{"sku":"GLM-0218","n":"Relaxkov 4 Mg Caja X 20 Tab ( Tizanidina)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":37645,"p2":31998,"b":"","bc":0,"bo":0,"iva":0,"s":4,"pdf":1},{"sku":"GLM-0219","n":"Sulfaoftal Solución Oftalmica Frasco X 15 Ml ( Sulfacetamida Sódica 100mg/ml)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":15700,"p2":13345,"b":"","bc":0,"bo":0,"iva":0,"s":13,"pdf":1},{"sku":"GLM-0220","n":"Telmisar Crema X 20 Gr (terbinafina)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":15469,"p2":13148,"b":"","bc":0,"bo":0,"iva":0,"s":14,"pdf":1},{"sku":"GLM-0221","n":"Tikoj 4% Solución Oftalmica Frasco X 5 Ml ( Cromoglicato De Sodio )","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":10594,"p2":9005,"b":"","bc":0,"bo":0,"iva":0,"s":21,"pdf":1},{"sku":"GLM-0222","n":"Tobroptic Compuesto Suspensión Oftálmica Frasco X 5 Ml ( Tobramicina 0.3% + Dexametasona 0.1%)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":26779,"p2":22762,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0223","n":"Tor Crema Proctológica Tubo X 10 Gr ( Dexametasona 0.1% Lidocaina 2%)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":14141,"p2":12020,"b":"","bc":0,"bo":0,"iva":0,"s":26,"pdf":1},{"sku":"GLM-0224","n":"Tramasindol Solución Oral X 10 Ml ( Tramadol 100mg/ml)","l":"Lab. Blaskov","lc":"010 - Lab. Blaskov","p1":5255,"p2":4467,"b":"","bc":0,"bo":0,"iva":0,"s":660,"pdf":1},{"sku":"GLM-0225","n":"Amlodipino 10 Mg Tabletas Caja X 10","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":3261,"p2":2772,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0226","n":"Amlodipino 5 Mg Tabletas Caja X 10","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":2289,"p2":1946,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0227","n":"Amoxicilina 500 Mg Cápsulas Caja X 100","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":37359,"p2":31755,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":1},{"sku":"GLM-0228","n":"Azitromicina 200mg/5ml Polvo Para Suspensión Frasco X 15 Ml","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":14509,"p2":12332,"b":"","bc":0,"bo":0,"iva":0,"s":19,"pdf":1},{"sku":"GLM-0229","n":"Azitromicina 500 Mg Tabletas Caja X 3","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":4459,"p2":3790,"b":"","bc":0,"bo":0,"iva":0,"s":156,"pdf":1},{"sku":"GLM-0230","n":"Benzoato De Bencilo 30% Loción Topica Frasco X 120 Ml","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":9636,"p2":8191,"b":"","bc":0,"bo":0,"iva":0,"s":45,"pdf":1},{"sku":"GLM-0231","n":"Claritromicina 500 Mg Tabletas Caja X 10 En Blister X 10","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":25842,"p2":21965,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0232","n":"Clindamicina 300 Mg Cápsulas Caja X 24","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":35260,"p2":29971,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0233","n":"Clofenil 75 Mg / 3 Ml Inyectable Caja X 6 Ampollas ( Diclofenaco)","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":18701,"p2":15896,"b":"","bc":0,"bo":0,"iva":0,"s":130,"pdf":1},{"sku":"GLM-0234","n":"Clorfeniramina Maleato 4 Mg Tabletas Caja X 20","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":3101,"p2":2636,"b":"","bc":0,"bo":0,"iva":0,"s":83,"pdf":1},{"sku":"GLM-0235","n":"Dermaskin Crema Tubo X 40 Gr ( Clotrimazol 1% + Neomicina 0.5% + Dexametasona 0.04%)","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":22042,"p2":18736,"b":"","bc":0,"bo":0,"iva":0,"s":861,"pdf":1},{"sku":"GLM-0236","n":"Desloratadina 5 Mg Tabletas Caja X 10","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":7366,"p2":6261,"b":"","bc":0,"bo":0,"iva":0,"s":49,"pdf":1},{"sku":"GLM-0237","n":"Diclofenaco 1% Gel Tubo 50 Gr","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":9283,"p2":7890,"b":"","bc":0,"bo":0,"iva":0,"s":24,"pdf":1},{"sku":"GLM-0238","n":"Dolicox Forte Max Tabletas Caja X 48 ( Acetaminofen + Naproxeno + Cafeina)","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":59516,"p2":50588,"b":"","bc":0,"bo":0,"iva":0,"s":77,"pdf":1},{"sku":"GLM-0239","n":"Doxiciclina 100 Mg Cápsulas Caja X 10","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":4798,"p2":4078,"b":"","bc":0,"bo":0,"iva":0,"s":15,"pdf":1},{"sku":"GLM-0240","n":"Furosemida 40 Mg Tabletas Caja X 100 En Blister X 10","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":13561,"p2":11527,"b":"","bc":0,"bo":0,"iva":0,"s":10,"pdf":1},{"sku":"GLM-0241","n":"Gastrofull Full Doble Acción X 24 Sachets ( Alginato Sodio + Bicarbonato)","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":45033,"p2":38278,"b":"","bc":0,"bo":0,"iva":0,"s":22,"pdf":1},{"sku":"GLM-0242","n":"Glibenclamida 5 Mg Tabletas Caja X 30","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":2618,"p2":2225,"b":"","bc":0,"bo":0,"iva":0,"s":8,"pdf":1},{"sku":"GLM-0243","n":"Hidroclorotiazida 25 Mg Tabletas Caja X 240","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":16369,"p2":13914,"b":"","bc":0,"bo":0,"iva":0,"s":4,"pdf":1},{"sku":"GLM-0244","n":"Hidroxido Aluminio + Hidroxido Magnesio+ Simeticona Frasco X 150 Ml","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":7470,"p2":6349,"b":"","bc":0,"bo":0,"iva":0,"s":576,"pdf":1},{"sku":"GLM-0245","n":"Hidroxido Aluminio+ Hidroxido Magnesio+ Simeticona Frasco X 360 Ml","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":11451,"p2":9733,"b":"","bc":0,"bo":0,"iva":0,"s":42,"pdf":1},{"sku":"GLM-0246","n":"Ibuprofeno 600 Mg Tableta Caja X 60","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":16876,"p2":14344,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0247","n":"Iseptic Garganta Frutos/ Rojos Tabletas Masticables Caja X 12 ( Benzocaina 10 Mg/ Cetilpiridino 1.4 Ml)","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":14737,"p2":12526,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0248","n":"Iseptic Garganta Frutos/ Rojos Tabletas Masticables Caja X 96 ( Benzocaina 10 Mg/ Cetilpiridino 1.4 Ml)","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":94045,"p2":79938,"b":"","bc":0,"bo":0,"iva":0,"s":41,"pdf":1},{"sku":"GLM-0249","n":"Iseptic Garganta Menta Tabletas Masticables Caja X 96 ( Benzocaina 10 Mg/ Cetilpiridino 1.4 Ml)","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":94045,"p2":79938,"b":"","bc":0,"bo":0,"iva":0,"s":31,"pdf":1},{"sku":"GLM-0250","n":"Ketoconazol 200 Mg Tabletas Caja X 10","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":4746,"p2":4034,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0251","n":"Krodex F Compuesto Cápsulas Caja X 20 ( Metronidazol + Nifuroxazida)","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":46387,"p2":39429,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":1},{"sku":"GLM-0252","n":"Krodex F Compuesto Suspensión Frasco X 120 Ml ( Metronidazol + Nifuroxazida)","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":35046,"p2":29789,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0253","n":"Loratadina 10 Mg Tabletas Caja X 10","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":2015,"p2":1713,"b":"","bc":0,"bo":0,"iva":0,"s":58,"pdf":1},{"sku":"GLM-0254","n":"Lovastatina 20 Mg Tabletas Caja X 10","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":3016,"p2":2563,"b":"","bc":0,"bo":0,"iva":0,"s":19,"pdf":1},{"sku":"GLM-0255","n":"Metoclopramida 10 Mg Tabletas Caja X 30","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":3709,"p2":3153,"b":"","bc":0,"bo":0,"iva":0,"s":32,"pdf":1},{"sku":"GLM-0256","n":"Metoclopramida 4mg/ml Solucion Oral Frasco 30 Ml Gotas","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":6555,"p2":5572,"b":"","bc":0,"bo":0,"iva":0,"s":82,"pdf":1},{"sku":"GLM-0257","n":"Minoxidil 5% locion","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":20034,"p2":17029,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0258","n":"Naproxeno 500 Mg Tabletas Caja X 10","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":5408,"p2":4597,"b":"","bc":0,"bo":0,"iva":0,"s":9,"pdf":1},{"sku":"GLM-0259","n":"Nelind Crema Tubo X 40 Gr ( Nistatina + Oxido De Zinc)","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":15798,"p2":13428,"b":"","bc":0,"bo":0,"iva":0,"s":84,"pdf":1},{"sku":"GLM-0260","n":"Norfloxacino 400 Mg Tabletas Caja X 20","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":9738,"p2":8277,"b":"","bc":0,"bo":0,"iva":0,"s":21,"pdf":1},{"sku":"GLM-0261","n":"Pentasol 0.05% Crema Tópica X 40 Gr ( Clobetasol)","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":27080,"p2":23018,"b":"","bc":0,"bo":0,"iva":0,"s":71,"pdf":1},{"sku":"GLM-0262","n":"Piroxicam 0.5% Gel Tubo X 30 Gr","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":9178,"p2":7802,"b":"","bc":0,"bo":0,"iva":0,"s":44,"pdf":1},{"sku":"GLM-0263","n":"Piroxicam 20 Mg Cápsulas Caja X 10","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":3728,"p2":3168,"b":"","bc":0,"bo":0,"iva":0,"s":27,"pdf":1},{"sku":"GLM-0264","n":"Prednisolona 5 Mg Tabletas Caja X 30","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":3969,"p2":3373,"b":"","bc":0,"bo":0,"iva":0,"s":772,"pdf":1},{"sku":"GLM-0265","n":"Secnidazol 1 Gr Tabletas Caja X 2","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":5683,"p2":4831,"b":"","bc":0,"bo":0,"iva":0,"s":8,"pdf":1},{"sku":"GLM-0266","n":"Secnidazol 500 Mg Tabletas Caja X 4","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":4441,"p2":3775,"b":"","bc":0,"bo":0,"iva":0,"s":31,"pdf":1},{"sku":"GLM-0267","n":"Sildenafil 50 Mg Tabletas Caja X 2","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":1182,"p2":1005,"b":"","bc":0,"bo":0,"iva":0,"s":43,"pdf":1},{"sku":"GLM-0268","n":"Silimarina 150 Mg Cápsulas Caja X 20","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":25287,"p2":21494,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0269","n":"Tinidazol 500 Mg Tabletas Caja X 8","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":4440,"p2":3774,"b":"","bc":0,"bo":0,"iva":0,"s":83,"pdf":1},{"sku":"GLM-0270","n":"Ulcepar 20 Mg Tabletas Caja X 330 ( Omeprazol)","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":54037,"p2":45932,"b":"","bc":0,"bo":0,"iva":0,"s":10,"pdf":1},{"sku":"GLM-0271","n":"Vitamina C 100mg/ml Solucion Oral Frasco X 30 Ml Gotas","l":"Lab. Coaspharma","lc":"013 - Lab. Coaspharma","p1":7453,"p2":6335,"b":"","bc":0,"bo":0,"iva":0,"s":91,"pdf":1},{"sku":"GLM-0272","n":"Amoxicilina 500 Mg Cápsulas Duras Caja X 50","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":21752,"p2":18489,"b":"","bc":0,"bo":0,"iva":0,"s":36,"pdf":1},{"sku":"GLM-0273","n":"Clindamicina 600 Mg / 4 Ml X 10 Ampollas","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":35265,"p2":29976,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0274","n":"Clotrimazol 1% Crema Topica Tubo X 40 Gr","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":5636,"p2":4790,"b":"","bc":0,"bo":0,"iva":0,"s":86,"pdf":1},{"sku":"GLM-0275","n":"Clotrimazol 1% Crema Vaginal Tubo X 40 Gr","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":8070,"p2":6859,"b":"","bc":0,"bo":0,"iva":0,"s":222,"pdf":1},{"sku":"GLM-0276","n":"Clotrimazol 100 Mg Óvulos Caja X 10","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":19107,"p2":16241,"b":"6 -> 1","bc":6,"bo":1,"iva":0,"s":43,"pdf":1},{"sku":"GLM-0277","n":"Dexametasona 8 Mg Caja X 100 Ampollas","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":113676,"p2":96625,"b":"","bc":0,"bo":0,"iva":0,"s":116,"pdf":1},{"sku":"GLM-0278","n":"Diclofenaco 75 Mg Caja X 10 Ampollas","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":14080,"p2":11968,"b":"","bc":0,"bo":0,"iva":0,"s":178,"pdf":1},{"sku":"GLM-0279","n":"Evinet 0.75 Mg Tabletas Caja X 2 ( Levonorgestrel)","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":6773,"p2":5757,"b":"","bc":0,"bo":0,"iva":0,"s":180,"pdf":1},{"sku":"GLM-0280","n":"Eye - Zul 0.1 % Solución Oftálmica Gotas X 7 Ml ( Nafazolina Clorhidrato)","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":9800,"p2":8330,"b":"","bc":0,"bo":0,"iva":0,"s":798,"pdf":1},{"sku":"GLM-0281","n":"Fem Duo  Metronidazol 500 Mg + Clotrimazol 100 Mg Caja X 10 Ovulos","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":34545,"p2":29363,"b":"","bc":0,"bo":0,"iva":0,"s":18,"pdf":1},{"sku":"GLM-0282","n":"Gentamicina 160 Mg Caja X 10 Ampollas","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":25452,"p2":21634,"b":"","bc":0,"bo":0,"iva":0,"s":18,"pdf":1},{"sku":"GLM-0283","n":"Hioscina N Butil Bromuro 20 Mg / 1 Ml Caja X 10 Ampollas","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":14563,"p2":12378,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0284","n":"Levotiroxina 100 Mcg Tabletas Caja X 150","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":58785,"p2":49967,"b":"","bc":0,"bo":0,"iva":0,"s":15,"pdf":1},{"sku":"GLM-0285","n":"Levotiroxina 50 Mcg Tabletas Caja X 150","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":45423,"p2":38609,"b":"","bc":0,"bo":0,"iva":0,"s":35,"pdf":1},{"sku":"GLM-0286","n":"Metronidazol 500 Mg Óvulos Caja X 10","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":11474,"p2":9753,"b":"","bc":0,"bo":0,"iva":0,"s":45,"pdf":1},{"sku":"GLM-0287","n":"Metronidazol 500 Mg Óvulos Caja X 200","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":156855,"p2":133352,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":1},{"sku":"GLM-0288","n":"metronist Metronidazol 500 Mg + Nistatina 100.000 U I Ovulos Caja X 10","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":41470,"p2":35250,"b":"","bc":0,"bo":0,"iva":0,"s":35,"pdf":1},{"sku":"GLM-0289","n":"Trimebutina 200 Mg + Simeticona 120 Mg Tabletas Recubiertas Caja X 30","l":"Lab. Procaps","lc":"014 - Lab. Procaps","p1":95550,"p2":81217,"b":"","bc":0,"bo":0,"iva":0,"s":31,"pdf":1},{"sku":"GLM-0290","n":"Clorfeniramina Jarabe Frasco X 120 Ml","l":"Lab. Ecar","lc":"016 - Lab. Ecar","p1":4437,"p2":3371,"b":"","bc":0,"bo":0,"iva":0,"s":107,"pdf":1},{"sku":"GLM-0291","n":"Complejo B Inyectable X 10 Ml Ampolla","l":"Lab. Ecar","lc":"016 - Lab. Ecar","p1":8070,"p2":6859,"b":"","bc":0,"bo":0,"iva":0,"s":73,"pdf":1},{"sku":"GLM-0292","n":"Complejo B Tabletas Caja X 250","l":"Lab. Ecar","lc":"016 - Lab. Ecar","p1":23814,"p2":20241,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0293","n":"Diclofenaco 50 Mg Tabletas Caja X 250","l":"Lab. Ecar","lc":"016 - Lab. Ecar","p1":28750,"p2":24437,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0294","n":"Loperamida 2 Mg Tabletas Caja X 6","l":"Lab. Ecar","lc":"016 - Lab. Ecar","p1":4289,"p2":3646,"b":"","bc":0,"bo":0,"iva":0,"s":48,"pdf":1},{"sku":"GLM-0295","n":"Yodopovidona Bucofaringeo Frasco X 60 Ml ( Bactroderm )","l":"Lab. Ecar","lc":"016 - Lab. Ecar","p1":7423,"p2":6309,"b":"","bc":0,"bo":0,"iva":0,"s":26,"pdf":1},{"sku":"GLM-0296","n":"Yodopovidona Solución Frasco X 60 Ml ( Bactroderm )","l":"Lab. Ecar","lc":"016 - Lab. Ecar","p1":7909,"p2":6721,"b":"","bc":0,"bo":0,"iva":0,"s":121,"pdf":1},{"sku":"GLM-0297","n":"Colchicina 0.5 Mg Tabletas Caja X 40","l":"Lab. Expopharma","lc":"017 - Lab. Expopharma","p1":10074,"p2":8563,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0298","n":"Losartan 50 Mg Tabletas Caja X 30","l":"Lab. Expopharma","lc":"017 - Lab. Expopharma","p1":5274,"p2":4483,"b":"","bc":0,"bo":0,"iva":0,"s":109,"pdf":1},{"sku":"GLM-0299","n":"Tramadol 100 Mg Gotas Frasco X 10 Ml","l":"Lab. Expopharma","lc":"017 - Lab. Expopharma","p1":5618,"p2":4775,"b":"","bc":0,"bo":0,"iva":0,"s":74,"pdf":1},{"sku":"GLM-0300","n":"Terramicina ungüento 10g (oxitetraciclina500mg/100g polimicina b1000000 U.I/100g)","l":"Lab. Pfizer","lc":"020 - Lab. Pfizer","p1":32450,"p2":27583,"b":"","bc":0,"bo":0,"iva":0,"s":50,"pdf":0},{"sku":"GLM-0301","n":"Acetaminofen 500 Mg Tabletas Caja X 100","l":"Lab. Genfar","lc":"021 - Lab. Genfar","p1":7347,"p2":6245,"b":"","bc":0,"bo":0,"iva":0,"s":142,"pdf":1},{"sku":"GLM-0302","n":"Diclofenaco 75 Mg Iny. Caja X 10 Ampollas","l":"Lab. Genfar","lc":"021 - Lab. Genfar","p1":14112,"p2":11995,"b":"","bc":0,"bo":0,"iva":0,"s":555,"pdf":1},{"sku":"GLM-0303","n":"Ibuprofeno 800 Mg Caja X 50 Tabletas","l":"Lab. Genfar","lc":"021 - Lab. Genfar","p1":12080,"p2":10268,"b":"","bc":0,"bo":0,"iva":0,"s":303,"pdf":1},{"sku":"GLM-0304","n":"Simpiox 0.6% Gotas Frasco X 5 Ml ( Ivermectina)","l":"Lab. Gerco","lc":"022 - Lab. Gerco","p1":11392,"p2":9683,"b":"","bc":0,"bo":0,"iva":0,"s":148,"pdf":0},{"sku":"GLM-0305","n":"Bedoyecta Tri Solución Inyectable Caja X 3 Jeringas Prellenadas","l":"Lab. Humax","lc":"023 - Lab. Humax","p1":29397,"p2":24987,"b":"","bc":0,"bo":0,"iva":0,"s":18,"pdf":1},{"sku":"GLM-0306","n":"Clorfeniramina Jarabe Frasco X 120 Ml","l":"Lab. Labinco","lc":"027 - Lab. Labinco","p1":4238,"p2":3603,"b":"","bc":0,"bo":0,"iva":0,"s":78,"pdf":1},{"sku":"GLM-0307","n":"Erassin 100 Mg Tabletas Caja X 2","l":"Lab. Labinco","lc":"027 - Lab. Labinco","p1":13887,"p2":11804,"b":"","bc":0,"bo":0,"iva":0,"s":81,"pdf":1},{"sku":"GLM-0308","n":"Acetaminofen 150 Mg Jarabe Frasco X 60 Ml","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":2899,"p2":2464,"b":"","bc":0,"bo":0,"iva":0,"s":18,"pdf":1},{"sku":"GLM-0309","n":"Acetaminofen 150 Mg Jarabe Frasco X 90 Ml","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":3875,"p2":3294,"b":"","bc":0,"bo":0,"iva":0,"s":65,"pdf":1},{"sku":"GLM-0310","n":"Acetaminofen 500 Mg Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":20492,"p2":17418,"b":"","bc":0,"bo":0,"iva":0,"s":19,"pdf":1},{"sku":"GLM-0311","n":"Aciclovir 200 Mg Tabletas Caja X 240","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":85221,"p2":74438,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0312","n":"Aciclovir 5% Unguento Tubo X 15 Gr","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":7423,"p2":6309,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":1},{"sku":"GLM-0313","n":"Aciclovir 800 Mg Tabletas Caja X 50","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":64878,"p2":55146,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0314","n":"Acido Folico 1 Mg Tabletas Caja X 400","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":42765,"p2":36650,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0315","n":"Ácido Fusídico 2 % Crema Topica","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":9074,"p2":7713,"b":"","bc":0,"bo":0,"iva":0,"s":19,"pdf":1},{"sku":"GLM-0316","n":"Albendazol 200 Mg Tabletas Caja X 50","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":28658,"p2":24359,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0317","n":"Albendazol 400 Mg/20 Ml Suspensión Frasco X 20 Ml","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":3100,"p2":2635,"b":"","bc":0,"bo":0,"iva":0,"s":16,"pdf":1},{"sku":"GLM-0318","n":"Amitriptilina 25 Mg Tabletas Caja X 400","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":70297,"p2":59752,"b":"","bc":0,"bo":0,"iva":0,"s":4,"pdf":1},{"sku":"GLM-0319","n":"Azitromicina 500 Mg Tabletas Caja X 30","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":35900,"p2":30500,"b":"","bc":0,"bo":0,"iva":0,"s":10,"pdf":1},{"sku":"GLM-0320","n":"Betahistina 8 Mg Tabletas Caja X 20","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":29776,"p2":25309,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0321","n":"Betametasona 0.05% 40gr Cr Laprof","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":7234,"p2":6149,"b":"","bc":0,"bo":0,"iva":0,"s":8,"pdf":1},{"sku":"GLM-0322","n":"Betametasona 0.1% crema  40Gr","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":7549,"p2":6417,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":1},{"sku":"GLM-0323","n":"Carbamazepina 200 Mg Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":165979,"p2":141082,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0324","n":"Cetirizina 10 Mg Tabletas Caja X 400","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":51192,"p2":43513,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0325","n":"Ciprofloxacina 500 Mg Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":158025,"p2":134321,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0326","n":"Clotrimazol 1 % Crema Vaginal Tubo X 40 Gr + 6 Aplicadores","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":7470,"p2":6349,"b":"","bc":0,"bo":0,"iva":0,"s":55,"pdf":1},{"sku":"GLM-0327","n":"Clotrimazol Crema Topica Tubo X 40 Gr","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":5710,"p2":4854,"b":"","bc":0,"bo":0,"iva":0,"s":30,"pdf":1},{"sku":"GLM-0328","n":"Complejo B Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":34040,"p2":28934,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0329","n":"Desloratadina 0.5 Mg / Ml Jarabe Frasco X 60 Ml","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":6820,"p2":5797,"b":"","bc":0,"bo":0,"iva":0,"s":5,"pdf":1},{"sku":"GLM-0330","n":"Desloratadina 5 Mg Tabletas Caja X 10","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":7523,"p2":6395,"b":"","bc":0,"bo":0,"iva":0,"s":31,"pdf":1},{"sku":"GLM-0331","n":"Diclofenaco 50 Mg Tabletas Caja X 400","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":50040,"p2":42534,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0332","n":"Difenhidramina 12.5 Mg / 5 Ml Jarabe Frasco X 120 Ml","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":5699,"p2":4844,"b":"","bc":0,"bo":0,"iva":0,"s":4,"pdf":1},{"sku":"GLM-0333","n":"Enerzinc 200 Mg/100 Ml Solución Oral Frutos Rojos Frasco X 120 Ml ( Sulfato De Zinc)","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":20529,"p2":17449,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0334","n":"Enerzinc 200 Mg/100 Ml Solucion Oral Frutos Rojos Frasco X 90 Ml ( Sulfato De Zinc)","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":10055,"p2":8547,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":1},{"sku":"GLM-0335","n":"Esomeprazol 20 X 100","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":85245,"p2":72458,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0336","n":"Espironolactona 25 Mg Tabletas Caja X 20","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":9077,"p2":7716,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0337","n":"Fin - Espam Fem 20/400 Mg Tabletas Caja X 10 ( Hioscina + Ibuprofeno )","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":14532,"p2":12350,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0338","n":"Fluconazol 200 Mg Cápsulas Caja X 100","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":107884,"p2":91702,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0339","n":"Folic Prevent 400 Mg Tabletas Caja X 30 ( Ácido Fólico)","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":17193,"p2":14614,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0340","n":"Furosemida 40 Mg Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":46213,"p2":39281,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0341","n":"Glibenclamida 5 Mg Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":27783,"p2":23616,"b":"","bc":0,"bo":0,"iva":0,"s":7,"pdf":1},{"sku":"GLM-0342","n":"Guayaproff Guayacolato De Glicerilo 300 Mg/15 Ml Jarabe 120 Ml","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":5781,"p2":4914,"b":"","bc":0,"bo":0,"iva":0,"s":17,"pdf":1},{"sku":"GLM-0343","n":"Hioscina N - Butilbromuro10 Mg Tabletas Caja X 400","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":160454,"p2":136386,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0344","n":"Ibuprofeno 400 Mg Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":63663,"p2":53903,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0345","n":"Ketotifeno 1 Mg Jarabe Frasco X 100 Ml","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":4873,"p2":4142,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0346","n":"Levofloxacino 500 Mg Tabletas Caja X 7","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":18072,"p2":15361,"b":"","bc":0,"bo":0,"iva":0,"s":22,"pdf":1},{"sku":"GLM-0347","n":"Loperamida 2 Mg Tabletas Caja X 240","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":75111,"p2":64099,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0348","n":"Loratadina 10 Mg Tabletas Caja X 400","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":60485,"p2":51412,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0349","n":"Losartan 100 Mg Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":104184,"p2":85557,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0350","n":"Losartan 50 Mg Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":35374,"p2":30119,"b":"","bc":0,"bo":0,"iva":0,"s":9,"pdf":1},{"sku":"GLM-0351","n":"Lovastatina 20 Mg Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":84447,"p2":71780,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0352","n":"Metocarbamol 750 Mg Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":134568,"p2":114379,"b":"","bc":0,"bo":0,"iva":0,"s":4,"pdf":1},{"sku":"GLM-0353","n":"Metoprolol 50 Mg Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":82044,"p2":69737,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0354","n":"Naproxeno 250 Mg Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":88589,"p2":75301,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0355","n":"Naproxeno 500 Mg Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":124590,"p2":105845,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0356","n":"Salbutamol Jarabe Frasco X 120 Ml","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":4751,"p2":4038,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0357","n":"Sildenafilo 50 Mg Tabletas Recubiertas Caja X 50","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":26839,"p2":22813,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0358","n":"Sulfato Ferroso 300 Mg Tabletas Caja X 300","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":35383,"p2":30075,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0359","n":"Suprifeno 100 Mg / 5 Mg Suspensión X 120 Ml ( Ibuprofeno )","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":10758,"p2":9161,"b":"","bc":0,"bo":0,"iva":0,"s":236,"pdf":1},{"sku":"GLM-0360","n":"Suprifeno 100 Mg/5 Ml Suspensión Frasco X 60 Ml Fresa ( Ibuprofeno)","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":7869,"p2":6689,"b":"","bc":0,"bo":0,"iva":0,"s":57,"pdf":1},{"sku":"GLM-0361","n":"Tadalafilo 20 Mg Tabletas Caja X 4","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":9408,"p2":7997,"b":"","bc":0,"bo":0,"iva":0,"s":28,"pdf":1},{"sku":"GLM-0362","n":"Yodinfex Solución Topica Frasco X 120 Ml ( Yodopovidona)","l":"Lab. Laproff","lc":"028 - Lab. Laproff","p1":8798,"p2":7478,"b":"","bc":0,"bo":0,"iva":0,"s":10,"pdf":1},{"sku":"GLM-0363","n":"Complejo B+zinc +vit d3 X 30 Cap blanda","l":"Lab. Lg Pharma","lc":"029 - Lab. Lg Pharma","p1":12275,"p2":10443,"b":"","bc":0,"bo":0,"iva":19,"s":33,"pdf":1},{"sku":"GLM-0364","n":"Difazin Max X 20 Gr ( Betamet Gentamic Clotrimazol)","l":"Lab. Lg Pharma","lc":"029 - Lab. Lg Pharma","p1":8962,"p2":7623,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0365","n":"Dolistan Jarabe X120 (ibuprofeno)","l":"Lab. Lg Pharma","lc":"029 - Lab. Lg Pharma","p1":7938,"p2":6947,"b":"","bc":0,"bo":0,"iva":0,"s":425,"pdf":1},{"sku":"GLM-0366","n":"Dosflem Adulto Jarabe Frasco X 120 Ml (guay-brom)","l":"Lab. Lg Pharma","lc":"029 - Lab. Lg Pharma","p1":9702,"p2":8246,"b":"","bc":0,"bo":0,"iva":0,"s":158,"pdf":1},{"sku":"GLM-0367","n":"Dosflem Niños Jarabe Frasco X 120 Ml (guay-brom)","l":"Lab. Lg Pharma","lc":"029 - Lab. Lg Pharma","p1":9702,"p2":8246,"b":"","bc":0,"bo":0,"iva":0,"s":45,"pdf":1},{"sku":"GLM-0368","n":"Enfarxin Cefalexina 500mg X 100cap Ive","l":"Lab. Lg Pharma","lc":"029 - Lab. Lg Pharma","p1":68810,"p2":58488,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0369","n":"Limpiaderm Crema Tubo X 20 Gr (gent-beta-clotri)","l":"Lab. Lg Pharma","lc":"029 - Lab. Lg Pharma","p1":8247,"p2":7010,"b":"","bc":0,"bo":0,"iva":0,"s":319,"pdf":1},{"sku":"GLM-0370","n":"Natrozim 500 Mg Tabletas Caja X 3 ( Azitromicina Dihidrato)","l":"Lab. Lg Pharma","lc":"029 - Lab. Lg Pharma","p1":5880,"p2":4998,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0371","n":"Nitxan nitazoxanida 100mg/5ml  60ml","l":"Lab. Lg Pharma","lc":"029 - Lab. Lg Pharma","p1":16905,"p2":14369,"b":"","bc":0,"bo":0,"iva":0,"s":125,"pdf":1},{"sku":"GLM-0372","n":"Nutrimiel Propoleo jalea X 240 Ml Adultos","l":"Lab. Lg Pharma","lc":"029 - Lab. Lg Pharma","p1":9702,"p2":8246,"b":"","bc":0,"bo":0,"iva":0,"s":28,"pdf":1},{"sku":"GLM-0373","n":"Nutrimiel Propoleo Niños  jalea X 240 Ml","l":"Lab. Lg Pharma","lc":"029 - Lab. Lg Pharma","p1":9702,"p2":8246,"b":"","bc":0,"bo":0,"iva":0,"s":9,"pdf":1},{"sku":"GLM-0374","n":"Propolito Niños Jarabe Frasco X 120 Ml","l":"Lab. Lg Pharma","lc":"029 - Lab. Lg Pharma","p1":6900,"p2":5865,"b":"","bc":0,"bo":0,"iva":0,"s":23,"pdf":1},{"sku":"GLM-0375","n":"Propomielt propoleo Adulto Jarabe Frasco X 120 Ml","l":"Lab. Lg Pharma","lc":"029 - Lab. Lg Pharma","p1":6950,"p2":5907,"b":"","bc":0,"bo":0,"iva":0,"s":23,"pdf":1},{"sku":"GLM-0376","n":"Loratadina Jarabe Frasco X 100 Ml","l":"Lab. Licol","lc":"030 - Lab. Licol","p1":5643,"p2":4947,"b":"","bc":0,"bo":0,"iva":0,"s":26,"pdf":1},{"sku":"GLM-0377","n":"Amoxicilina 500 Mg Cápsulas Caja X 50","l":"Lab. La Sante","lc":"031 - Lab. La Sante","p1":20577,"p2":17491,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":0},{"sku":"GLM-0378","n":"Beciprof 500 Mg Cápsulas Caja X 50 ( Dicloxacilina)","l":"Lab. Med Line","lc":"032 - Lab. Med Line","p1":53887,"p2":45804,"b":"","bc":0,"bo":0,"iva":0,"s":8,"pdf":0},{"sku":"GLM-0379","n":"Fluimed Jarabe Frasco X 120 Ml (n-acetil-guayacola)","l":"Lab. Med Line","lc":"032 - Lab. Med Line","p1":17739,"p2":15078,"b":"","bc":0,"bo":0,"iva":0,"s":96,"pdf":0},{"sku":"GLM-0380","n":"Fulerec 50 Mg Tabletas Caja 4 ( Sildenafilo)","l":"Lab. Med Line","lc":"032 - Lab. Med Line","p1":5222,"p2":4438,"b":"","bc":0,"bo":0,"iva":0,"s":81,"pdf":0},{"sku":"GLM-0381","n":"Histaline 5 Mg Tabletas Caja X 10 ( Desloratadina)","l":"Lab. Med Line","lc":"032 - Lab. Med Line","p1":8631,"p2":7337,"b":"","bc":0,"bo":0,"iva":0,"s":79,"pdf":0},{"sku":"GLM-0382","n":"Noriflam Diclofenaco 75 Mg Iny. Caja X 6 Ampollas ( Diclofenaco)","l":"Lab. Med Line","lc":"032 - Lab. Med Line","p1":17043,"p2":14629,"b":"","bc":0,"bo":0,"iva":0,"s":93,"pdf":0},{"sku":"GLM-0383","n":"Orvimox 250 Mg/5 Ml Polvo Suspensión Frasco X 60 Ml ( Amoxicilina)","l":"Lab. Med Line","lc":"032 - Lab. Med Line","p1":10725,"p2":9116,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":0},{"sku":"GLM-0384","n":"Azitromicina 500 Mg Tabletas Caja X 3","l":"Lab. Memphis","lc":"033 - Lab. Memphis","p1":4180,"p2":3553,"b":"","bc":0,"bo":0,"iva":0,"s":222,"pdf":0},{"sku":"GLM-0385","n":"Dicloxacilina 500 Mg Cápsulas Caja X 50","l":"Lab. Memphis","lc":"033 - Lab. Memphis","p1":39543,"p2":33611,"b":"","bc":0,"bo":0,"iva":0,"s":7,"pdf":0},{"sku":"GLM-0386","n":"Hidroxicina Hcl 25 Mg Tabletas Caja X 20","l":"Lab. Memphis","lc":"033 - Lab. Memphis","p1":0,"p2":0,"b":"","bc":0,"bo":0,"iva":0,"s":22,"pdf":0},{"sku":"GLM-0387","n":"Fencafen 100 Mg Tabletas Caja X 50","l":"Lab. Tecnoquimicas","lc":"036 - Lab. Tecnoquimicas","p1":69900,"p2":59415,"b":"","bc":0,"bo":0,"iva":0,"s":19,"pdf":0},{"sku":"GLM-0388","n":"Travad Enema Rectal X 133 Ml","l":"Lab. Tecnoquimicas","lc":"036 - Lab. Tecnoquimicas","p1":27444,"p2":23327,"b":"","bc":0,"bo":0,"iva":0,"s":101,"pdf":0},{"sku":"GLM-0389","n":"Libelle 0.75 Mg Tabletas Caja X 2 ( Levonorgestrel)","l":"Lab. Novamed","lc":"041 - Lab. Novamed","p1":6207,"p2":5897,"b":"","bc":0,"bo":0,"iva":0,"s":4,"pdf":1},{"sku":"GLM-0390","n":"Congestex Kids Jarabe Frasco X 90 Ml","l":"Lab. Novamed","lc":"041 - Lab. Novamed","p1":11123,"p2":9454,"b":"","bc":0,"bo":0,"iva":0,"s":118,"pdf":1},{"sku":"GLM-0391","n":"Ginkgo Biloba 120 mg x 60 tab","l":"Lab. Lg Naturales","lc":"042 - Lab. Lg Naturales","p1":24663,"p2":20964,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":0},{"sku":"GLM-0392","n":"Postinor 2 - 0.75 Mg Comprimidos Caja X 2 ( Levonorgestrel)","l":"Lab. Profamilia","lc":"046 - Lab. Profamilia","p1":8817,"p2":7495,"b":"","bc":0,"bo":0,"iva":0,"s":62,"pdf":0},{"sku":"GLM-0393","n":"Postinor 1 - 1.5 Mg Tabletas Caja X 1 ( Levonorgestrel)","l":"Lab. Profamilia","lc":"046 - Lab. Profamilia","p1":8747,"p2":7435,"b":"","bc":0,"bo":0,"iva":0,"s":16,"pdf":0},{"sku":"GLM-0394","n":"Benlic Crema Tubo X 20 Gr beta clotri gantam","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":13595,"p2":11555,"b":"12 -> 1","bc":12,"bo":1,"iva":0,"s":60,"pdf":1},{"sku":"GLM-0395","n":"Benlic Crema Tubo X 40 Gr beta clotri gantam","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":21664,"p2":18415,"b":"","bc":0,"bo":0,"iva":0,"s":77,"pdf":1},{"sku":"GLM-0396","n":"Betadip Crema Tubo X 40 Gr ( Betametasona)","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":11771,"p2":10005,"b":"","bc":0,"bo":0,"iva":0,"s":11,"pdf":1},{"sku":"GLM-0397","n":"Bislakso Suspensión Oral Frasco X 120 Ml ( Subsalicilato De Bismuto 1.75%)","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":21756,"p2":18492,"b":"","bc":0,"bo":0,"iva":0,"s":5,"pdf":1},{"sku":"GLM-0398","n":"Brogu Solución Oral Frasco X 125 Ml - Miel ( Guaifenesina 2 Gr + Bromhexina 80 Mg)","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":18827,"p2":16003,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0399","n":"Enarde gel  top Meloxicam 1%","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":25578,"p2":21741,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0400","n":"Furm Locion Frasco X 30 Ml ( Mometasona Furoato 0.1 %)","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":39090,"p2":33226,"b":"","bc":0,"bo":0,"iva":0,"s":20,"pdf":1},{"sku":"GLM-0401","n":"Neclobet Crema Tópica Tubo X 20 Gr ( Clotrimazol + Neomicina + Betametasona)","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":15435,"p2":13119,"b":"","bc":0,"bo":0,"iva":0,"s":24,"pdf":1},{"sku":"GLM-0402","n":"Neclobet Crema Tópica Tubo X 40 Gr ( Clotrimazol + Neomicina + Betametasona)","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":21315,"p2":18117,"b":"","bc":0,"bo":0,"iva":0,"s":24,"pdf":1},{"sku":"GLM-0403","n":"Tain Suspensión Frasco X 60 Ml ( Nistatina 100.000 U I/ml)","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":12078,"p2":10267,"b":"","bc":0,"bo":0,"iva":0,"s":64,"pdf":1},{"sku":"GLM-0404","n":"Tisat Crema Tubo X 30 Gr ( Nistatina 100.000 U.I)","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":14700,"p2":12495,"b":"","bc":0,"bo":0,"iva":0,"s":9,"pdf":1},{"sku":"GLM-0405","n":"Trimicor Ungüento Tubo X 40 Gr","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":23520,"p2":19992,"b":"","bc":0,"bo":0,"iva":0,"s":41,"pdf":1},{"sku":"GLM-0406","n":"Trimicort Crema Tubo X 40 Gr","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":17640,"p2":15941,"b":"","bc":0,"bo":0,"iva":0,"s":27,"pdf":1},{"sku":"GLM-0407","n":"Trimicort Solución Tópica X 60 Ml","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":23373,"p2":19867,"b":"","bc":0,"bo":0,"iva":0,"s":52,"pdf":1},{"sku":"GLM-0408","n":"Vclocli Crema Vaginal X 20 Gr ( Clotrimazol 2% + Clindamicina 2%","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":22785,"p2":19367,"b":"","bc":0,"bo":0,"iva":0,"s":119,"pdf":1},{"sku":"GLM-0409","n":"Vivirson Ungüento Tópico Tubo X 15 Gr ( Aciclovir 5%)","l":"Lab. Profma","lc":"051 - Lab. Profma","p1":8599,"p2":7309,"b":"","bc":0,"bo":0,"iva":0,"s":21,"pdf":1},{"sku":"GLM-0410","n":"aflixdol Tab Caja X 48 aceta naprox cafeina","l":"Lab. Rociphar","lc":"055 - Lab. Rociphar","p1":48693,"p2":39859,"b":"","bc":0,"bo":0,"iva":0,"s":51,"pdf":0},{"sku":"GLM-0411","n":"Asobroncol Nf Jarabe Frasco X 120 Ml","l":"Lab. Rociphar","lc":"055 - Lab. Rociphar","p1":18713,"p2":15906,"b":"","bc":0,"bo":0,"iva":0,"s":103,"pdf":0},{"sku":"GLM-0412","n":"Taxen Suspensión Oral Frasco X 30 Ml ( Nitazoxanida 2%)","l":"Lab. Rociphar","lc":"055 - Lab. Rociphar","p1":10863,"p2":9233,"b":"","bc":0,"bo":0,"iva":0,"s":53,"pdf":0},{"sku":"GLM-0413","n":"Aclovisir 5% Unguento Tubo X 20 Gr Aciclovir Ruecam","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":12201,"p2":10370,"b":"","bc":0,"bo":0,"iva":0,"s":21,"pdf":1},{"sku":"GLM-0414","n":"Alervox 5mg X 10 tab ( Levocetirizina Diclorhidrato)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":13546,"p2":11514,"b":"","bc":0,"bo":0,"iva":0,"s":56,"pdf":1},{"sku":"GLM-0415","n":"BASSILOX  X 6 SOBRES","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":18375,"p2":15618,"b":"","bc":0,"bo":0,"iva":0,"s":15,"pdf":1},{"sku":"GLM-0416","n":"Bassilox x 30 sbres diosmectita","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":78021,"p2":66318,"b":"","bc":0,"bo":0,"iva":0,"s":18,"pdf":1},{"sku":"GLM-0417","n":"Broncoflem ultra Jarabe Frasco X 120 Ml ( Hedera Helix + Propoleo+jengibre)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":15435,"p2":13119,"b":"","bc":0,"bo":0,"iva":0,"s":19,"pdf":1},{"sku":"GLM-0418","n":"Cristhaler Jarabe Frasco X 120 Ml ( Desloratadina)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":13965,"p2":11870,"b":"","bc":0,"bo":0,"iva":0,"s":50,"pdf":1},{"sku":"GLM-0419","n":"Drenolax Pluss Jarabe Frasco X 120 Ml","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":14406,"p2":12245,"b":"","bc":0,"bo":0,"iva":0,"s":41,"pdf":1},{"sku":"GLM-0420","n":"Faidol ultra Cápsulas De Gelatina Blanda Caja X 60 ( Ibuprofeno+cafeina)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":85113,"p2":72346,"b":"","bc":0,"bo":0,"iva":0,"s":14,"pdf":1},{"sku":"GLM-0421","n":"Flexvi n-acetilcisteina guaycoloato de glicerio x 120ml","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":15435,"p2":13119,"b":"","bc":0,"bo":0,"iva":0,"s":161,"pdf":1},{"sku":"GLM-0422","n":"Fonkink 500 Mg Tabletas Recubiertas Caja X 3 ( Azitromicina)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":11025,"p2":9371,"b":"","bc":0,"bo":0,"iva":0,"s":224,"pdf":1},{"sku":"GLM-0423","n":"Gazolex Suspensión Oral Frasco X 360 Ml - Menta","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":32193,"p2":27364,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0424","n":"Kartiflex CBD Gel x 60gr (Curcuma,Capsicum.Arnica.Cannabis)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":23028,"p2":19574,"b":"","bc":0,"bo":0,"iva":19,"s":26,"pdf":1},{"sku":"GLM-0425","n":"Lindazol Ovulos Caja X 3 ( Clotrimazol 200 Mg + Clindamicina 100 Mg)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":22785,"p2":19367,"b":"","bc":0,"bo":0,"iva":0,"s":313,"pdf":1},{"sku":"GLM-0426","n":"Metrosher Suspensión Frasco X 120 Ml( Metronidazol + Nifuroxazida)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":17493,"p2":14869,"b":"12 -> 1","bc":12,"bo":1,"iva":0,"s":67,"pdf":1},{"sku":"GLM-0427","n":"Noktos Jarabe Frasco X 120 Ml Adulto ( Bromhexina + Guayacolato)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":10584,"p2":8996,"b":"","bc":0,"bo":0,"iva":0,"s":110,"pdf":1},{"sku":"GLM-0428","n":"Noktos Jarabe Frasco X 120 Ml Niños (bromhexina+guayacolato)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":10584,"p2":8996,"b":"","bc":0,"bo":0,"iva":0,"s":128,"pdf":1},{"sku":"GLM-0429","n":"Pranexxin 500 Mg Tabletas Caja X 6 ( Nitazoxanida)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":16464,"p2":13994,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0430","n":"Rodiflex 15 Mg Tabletas Caja X 10 ( Meloxicam)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":7056,"p2":5997,"b":"","bc":0,"bo":0,"iva":0,"s":53,"pdf":1},{"sku":"GLM-0431","n":"Rodiflex Duo (meloxicam 15mg +esomeprazol 20mg)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":18081,"p2":15368,"b":"12 -> 1","bc":12,"bo":1,"iva":0,"s":64,"pdf":1},{"sku":"GLM-0432","n":"Skinderm Crema Tópica Tubo X 20 Gr ( Betametasona + Neomicina + Clotrimazol)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":10584,"p2":8996,"b":"","bc":0,"bo":0,"iva":0,"s":152,"pdf":1},{"sku":"GLM-0433","n":"Tacna 375 Mg Tabletas Caja X 10 ( Sultamicilina)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":51156,"p2":43482,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":1},{"sku":"GLM-0434","n":"Tridirtex Crema Tópica Tubo X 40 Gr ( Clobetasol Propinato 0.05%)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":16317,"p2":13869,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0435","n":"Tridirtex Solución Tópica X 60 Ml ( Clobetasol Propinato 0.05%)","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":16147,"p2":13725,"b":"","bc":0,"bo":0,"iva":0,"s":56,"pdf":1},{"sku":"GLM-0436","n":"Tropxim - F Ovulos Caja X 10 ( Metronidazol + Clotrimazol )","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":27985,"p2":23783,"b":"","bc":0,"bo":0,"iva":0,"s":176,"pdf":1},{"sku":"GLM-0437","n":"Vaxomizol Terbirafina Hci 1%","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":11613,"p2":9871,"b":"","bc":0,"bo":0,"iva":0,"s":17,"pdf":1},{"sku":"GLM-0438","n":"Zetygrip - 4 Jarabe Frasco X 60 Ml","l":"Lab. Ruecam","lc":"056 - Lab. Ruecam","p1":10731,"p2":9121,"b":"","bc":0,"bo":0,"iva":0,"s":87,"pdf":1},{"sku":"GLM-0439","n":"Afromax T Frasco X 500 Ml ( Potenciador)","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":22785,"p2":19367,"b":"","bc":0,"bo":0,"iva":0,"s":18,"pdf":1},{"sku":"GLM-0440","n":"Afromax T X 24  Aloe Vera Manzanilla y Guarana","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":38146,"p2":32426,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":1},{"sku":"GLM-0441","n":"Angifin Solución Topica Uñas x 30 Ml","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":18375,"p2":15618,"b":"","bc":0,"bo":0,"iva":19,"s":114,"pdf":1},{"sku":"GLM-0442","n":"Bedobiom -b  complejo b","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":17493,"p2":14869,"b":"","bc":0,"bo":0,"iva":0,"s":95,"pdf":1},{"sku":"GLM-0443","n":"Crema De Limon X 12 Unidades","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":13646,"p2":11599,"b":"","bc":0,"bo":0,"iva":19,"s":4,"pdf":1},{"sku":"GLM-0444","n":"Deshidrad 60 Frasco X 500 Ml Coco","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":6100,"p2":4985,"b":"","bc":0,"bo":0,"iva":0,"s":15,"pdf":1},{"sku":"GLM-0445","n":"Deshidrad 60 Frasco X 500 Ml Fresa","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":6100,"p2":5185,"b":"","bc":0,"bo":0,"iva":0,"s":31,"pdf":1},{"sku":"GLM-0446","n":"Deshidrad 60 Frasco X 500 Ml Mandarina","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":6100,"p2":5185,"b":"","bc":0,"bo":0,"iva":0,"s":18,"pdf":1},{"sku":"GLM-0447","n":"Deshidrad 60 Frasco X 500 Ml Maracuya","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":6100,"p2":5185,"b":"","bc":0,"bo":0,"iva":0,"s":13,"pdf":1},{"sku":"GLM-0448","n":"Deshidrad 60 Frasco X 500 Ml Uva","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":6100,"p2":5185,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0449","n":"Deshidrat 60 Frasco X 500 Ml Cereza","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":6100,"p2":5185,"b":"","bc":0,"bo":0,"iva":0,"s":16,"pdf":1},{"sku":"GLM-0450","n":"Deshidrat Suer - Ox Zinc 60 Frasco X 500 Ml Manzana","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":6100,"p2":5185,"b":"","bc":0,"bo":0,"iva":0,"s":37,"pdf":1},{"sku":"GLM-0451","n":"Eucolflem - T Adultos Frasco X 120 Ml ( Propóleo Y Áloe Vera)","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":7056,"p2":5997,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":1},{"sku":"GLM-0452","n":"Eucolflem - T Niños Frasco X 120 Ml ( Propóleo Y Áloe Vera)","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":7056,"p2":5997,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":1},{"sku":"GLM-0453","n":"Hidromx 70 Maracuya","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":6101,"p2":5185,"b":"","bc":0,"bo":0,"iva":0,"s":72,"pdf":1},{"sku":"GLM-0454","n":"Hidromx 70 X 650 Ml Cereza","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":6101,"p2":5185,"b":"","bc":0,"bo":0,"iva":0,"s":106,"pdf":1},{"sku":"GLM-0455","n":"Hidromx 70 X 650 Ml Coco","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":6101,"p2":5185,"b":"","bc":0,"bo":0,"iva":0,"s":154,"pdf":1},{"sku":"GLM-0456","n":"Hidromx 70 X 650 Ml Fresa","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":6101,"p2":5185,"b":"","bc":0,"bo":0,"iva":0,"s":8,"pdf":1},{"sku":"GLM-0457","n":"Hidromx 70 X 650 Ml Mandarina","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":6101,"p2":5185,"b":"","bc":0,"bo":0,"iva":0,"s":115,"pdf":1},{"sku":"GLM-0458","n":"Hidromx 70 X 650 Ml Manzana","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":6101,"p2":5185,"b":"","bc":0,"bo":0,"iva":0,"s":146,"pdf":1},{"sku":"GLM-0459","n":"Hidromx 70 X 650 Ml Uva","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":6101,"p2":5185,"b":"","bc":0,"bo":0,"iva":0,"s":144,"pdf":1},{"sku":"GLM-0460","n":"Kolisan - T X 500 Ml ( Aloe Vera Y Linaza)","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":14200,"p2":13070,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":1},{"sku":"GLM-0461","n":"Milan - T Plus Sabor Menta Frasco X 360 Ml ( Alginato)","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":18963,"p2":16118,"b":"","bc":0,"bo":0,"iva":0,"s":11,"pdf":1},{"sku":"GLM-0462","n":"Moring - T X 500 Ml ( Aloe Vera + Moringa)","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":15435,"p2":13119,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0463","n":"Tolvox Fresh Garganta Cereza Comprimido Masticable Caja X 12","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":7335,"p2":6235,"b":"","bc":0,"bo":0,"iva":19,"s":100,"pdf":1},{"sku":"GLM-0464","n":"Tolvox Fresh Garganta Menta Comprimido Masticable Caja X 12","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":7335,"p2":6235,"b":"","bc":0,"bo":0,"iva":19,"s":100,"pdf":1},{"sku":"GLM-0465","n":"Vaselina Pote X 5 Gr X 12 Unidades","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":7350,"p2":6247,"b":"","bc":0,"bo":0,"iva":0,"s":9,"pdf":1},{"sku":"GLM-0466","n":"Vitaser- T X 500 Ml maca chontaduro borojo","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":24843,"p2":21116,"b":"","bc":0,"bo":0,"iva":0,"s":45,"pdf":1},{"sku":"GLM-0467","n":"Vitaser-T Caja X20 sachets X15ml Bebida con (aloe vera+maca+chontaduro+borojo+caramelo)","l":"Lab. Alikin Pharma","lc":"058 - Lab. Alikin Pharma","p1":33663,"p2":28614,"b":"","bc":0,"bo":0,"iva":0,"s":22,"pdf":1},{"sku":"GLM-0468","n":"Zincovit c Naranja Mandarina Vitamina c x 100 tab","l":"Lab. Vitafar","lc":"064 - Lab. Vitafar","p1":28260,"p2":24021,"b":"","bc":0,"bo":0,"iva":0,"s":4,"pdf":0},{"sku":"GLM-0469","n":"Diclofenaco 1% Gel Topico X 50 Gr","l":"Lab. Vitalis","lc":"065 - Lab. Vitalis","p1":7962,"p2":6767,"b":"","bc":0,"bo":0,"iva":0,"s":304,"pdf":0},{"sku":"GLM-0470","n":"Nafvision - Nafazolina Clorhidrato 1 Mg Solución Oftalmica X 7 Ml","l":"Lab. Vitalis","lc":"065 - Lab. Vitalis","p1":6330,"p2":5380,"b":"","bc":0,"bo":0,"iva":0,"s":31,"pdf":0},{"sku":"GLM-0471","n":"Esparadrapo Tela Blanco Supreme 1\"x1 Yds","l":"Lab. Protex","lc":"069 - Lab. Protex","p1":1292,"p2":1098,"b":"","bc":0,"bo":0,"iva":0,"s":18,"pdf":0},{"sku":"GLM-0472","n":"Esparadrapo Tela Blanco Supreme 4\"x 5 Yds","l":"Lab. Protex","lc":"069 - Lab. Protex","p1":12249,"p2":10412,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":0},{"sku":"GLM-0473","n":"Guante Examtex Talla L Latex X 100 Unidades","l":"Lab. Protex","lc":"069 - Lab. Protex","p1":19107,"p2":16241,"b":"","bc":0,"bo":0,"iva":19,"s":4,"pdf":0},{"sku":"GLM-0474","n":"Guante Examtex Talla M Latex X 100 Unidades","l":"Lab. Protex","lc":"069 - Lab. Protex","p1":15729,"p2":13330,"b":"","bc":0,"bo":0,"iva":19,"s":8,"pdf":0},{"sku":"GLM-0475","n":"Guante Examtex Talla S Latex X 100 Unidades","l":"Lab. Protex","lc":"069 - Lab. Protex","p1":16370,"p2":13914,"b":"","bc":0,"bo":0,"iva":19,"s":3,"pdf":0},{"sku":"GLM-0476","n":"Guante Protexion Nitrilo Azul Talla L Caja X 100","l":"Lab. Protex","lc":"069 - Lab. Protex","p1":17540,"p2":14909,"b":"","bc":0,"bo":0,"iva":19,"s":9,"pdf":0},{"sku":"GLM-0477","n":"Guante Protexion Nitrilo Azul Talla S Caja X 100","l":"Lab. Protex","lc":"069 - Lab. Protex","p1":16333,"p2":13883,"b":"","bc":0,"bo":0,"iva":19,"s":1,"pdf":0},{"sku":"GLM-0478","n":"Guante Protexion Nitrilo Negro Talla L Caja X 100","l":"Lab. Protex","lc":"069 - Lab. Protex","p1":17540,"p2":14909,"b":"","bc":0,"bo":0,"iva":19,"s":6,"pdf":0},{"sku":"GLM-0479","n":"Guante Protexion Nitrilo Negro Talla M Caja X 100","l":"Lab. Protex","lc":"069 - Lab. Protex","p1":17540,"p2":14909,"b":"","bc":0,"bo":0,"iva":19,"s":6,"pdf":0},{"sku":"GLM-0480","n":"Guante Protexion Nitrilo Negro Talla S Caja X 100","l":"Lab. Protex","lc":"069 - Lab. Protex","p1":17540,"p2":14909,"b":"","bc":0,"bo":0,"iva":19,"s":5,"pdf":0},{"sku":"GLM-0481","n":"Inhalocamara Adulto","l":"Lab. Protex","lc":"069 - Lab. Protex","p1":8736,"p2":7425,"b":"","bc":0,"bo":0,"iva":19,"s":9,"pdf":0},{"sku":"GLM-0482","n":"Inhalocamara Pediatrica","l":"Lab. Protex","lc":"069 - Lab. Protex","p1":9415,"p2":8003,"b":"","bc":0,"bo":0,"iva":19,"s":8,"pdf":0},{"sku":"GLM-0483","n":"Jeringa 3p 10ml 21x1.1/2 X 100 Uds","l":"Lab. Protex","lc":"069 - Lab. Protex","p1":26904,"p2":22890,"b":"","bc":0,"bo":0,"iva":19,"s":2,"pdf":0},{"sku":"GLM-0484","n":"Micropore Piel Supreme 1\"x 1 Yds","l":"Lab. Protex","lc":"069 - Lab. Protex","p1":15681,"p2":13329,"b":"","bc":0,"bo":0,"iva":0,"s":5,"pdf":0},{"sku":"GLM-0485","n":"Aposito Ocular Adulto X 20 U. Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":9849,"p2":8372,"b":"","bc":0,"bo":0,"iva":0,"s":4,"pdf":0},{"sku":"GLM-0486","n":"Aposito Ocular Niños X 20un. Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":10511,"p2":8934,"b":"","bc":0,"bo":0,"iva":0,"s":5,"pdf":0},{"sku":"GLM-0487","n":"Curitas adhesivas color piel X 100 UND BEGUT","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":7718,"p2":6560,"b":"","bc":0,"bo":0,"iva":0,"s":46,"pdf":0},{"sku":"GLM-0488","n":"Curitas adhesivas figuras X 90 UND BEGUT","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":10143,"p2":8622,"b":"","bc":0,"bo":0,"iva":0,"s":54,"pdf":0},{"sku":"GLM-0489","n":"Curitas Redonda piel Caja X 100 Unidades","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":7056,"p2":5997,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":0},{"sku":"GLM-0490","n":"Esparadrapo Microporoso 1/2x10 X 12 Rollos Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":33127,"p2":28158,"b":"","bc":0,"bo":0,"iva":0,"s":5,"pdf":0},{"sku":"GLM-0491","n":"Esparadrapo Microporoso 1x3 X 12 Rollos Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":26107,"p2":22191,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":0},{"sku":"GLM-0492","n":"Esparadrapo Tela 1/2x1 X 24 Rollos Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":40572,"p2":34486,"b":"","bc":0,"bo":0,"iva":0,"s":9,"pdf":0},{"sku":"GLM-0493","n":"Esparadrapo Tela 1/2x5 X Unidad","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":3675,"p2":3123,"b":"","bc":0,"bo":0,"iva":0,"s":65,"pdf":0},{"sku":"GLM-0494","n":"Esparadrapo Tela 1x1 X 12 Rollos Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":28929,"p2":24590,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":0},{"sku":"GLM-0495","n":"Esparadrapo Tela 3x5 X Unidad Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":11436,"p2":9721,"b":"","bc":0,"bo":0,"iva":0,"s":4,"pdf":0},{"sku":"GLM-0496","n":"Esparadrapo Tela 4x5 X Unidad Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":13789,"p2":11720,"b":"","bc":0,"bo":0,"iva":0,"s":14,"pdf":0},{"sku":"GLM-0497","n":"Gasa Esteril 12 Sobres X 2u 3x3 Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":5586,"p2":4748,"b":"","bc":0,"bo":0,"iva":0,"s":24,"pdf":0},{"sku":"GLM-0498","n":"Guante Nitrilo Azul Talla L Caja X 100 Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":20300,"p2":17255,"b":"","bc":0,"bo":0,"iva":19,"s":7,"pdf":0},{"sku":"GLM-0499","n":"Guante Nitrilo Azul Talla M Caja X 100 Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":19477,"p2":16555,"b":"","bc":0,"bo":0,"iva":19,"s":4,"pdf":0},{"sku":"GLM-0500","n":"Guante Nitrilo Azul Talla S X 100 Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":20300,"p2":17255,"b":"","bc":0,"bo":0,"iva":19,"s":2,"pdf":0},{"sku":"GLM-0501","n":"Jeringa 3 Partes 10 Ml X 100 Unid Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":35280,"p2":29988,"b":"","bc":0,"bo":0,"iva":19,"s":13,"pdf":0},{"sku":"GLM-0502","n":"Jeringa 3 Partes 3ml 21x1.1/2 100 Uds Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":21903,"p2":18618,"b":"","bc":0,"bo":0,"iva":19,"s":6,"pdf":0},{"sku":"GLM-0503","n":"Jeringa 3 Partes 5 Ml X 100 Unid Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":21977,"p2":18680,"b":"","bc":0,"bo":0,"iva":19,"s":11,"pdf":0},{"sku":"GLM-0504","n":"Jeringa 3p 3ml 23gx1 Niño 100 Uds Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":21903,"p2":18618,"b":"","bc":0,"bo":0,"iva":19,"s":5,"pdf":0},{"sku":"GLM-0505","n":"Jeringa 5 Ml 21g X 1 1/2 Protex","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":18669,"p2":15868,"b":"","bc":0,"bo":0,"iva":19,"s":3,"pdf":0},{"sku":"GLM-0506","n":"Jeringa Insulina 3 Partes 1ml Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":23520,"p2":19992,"b":"","bc":0,"bo":0,"iva":19,"s":2,"pdf":0},{"sku":"GLM-0507","n":"Prueba De Embarazo Casset Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":1911,"p2":1624,"b":"","bc":0,"bo":0,"iva":0,"s":107,"pdf":0},{"sku":"GLM-0508","n":"Tapabocas Desechable Begut Azul Caja X 50 - Empaque Individual","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":9996,"p2":8496,"b":"","bc":0,"bo":0,"iva":19,"s":58,"pdf":0},{"sku":"GLM-0509","n":"Tapabocas Desechable Begut Negro Caja X 50 - Empaque Individual","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":10584,"p2":8996,"b":"","bc":0,"bo":0,"iva":19,"s":33,"pdf":0},{"sku":"GLM-0510","n":"Tapabocas Dsechable Beugut Niño Cja X 50 U","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":10584,"p2":8996,"b":"","bc":0,"bo":0,"iva":19,"s":43,"pdf":0},{"sku":"GLM-0511","n":"Termometro Digital Figurita Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":11025,"p2":9371,"b":"","bc":0,"bo":0,"iva":19,"s":22,"pdf":0},{"sku":"GLM-0512","n":"Termometro Digital Flexible Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":8379,"p2":7122,"b":"","bc":0,"bo":0,"iva":19,"s":11,"pdf":0},{"sku":"GLM-0513","n":"Venda De Yeso 3x5 Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":4263,"p2":3623,"b":"","bc":0,"bo":0,"iva":0,"s":16,"pdf":0},{"sku":"GLM-0514","n":"Venda De Yeso 4x5 Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":5439,"p2":4623,"b":"","bc":0,"bo":0,"iva":0,"s":17,"pdf":0},{"sku":"GLM-0515","n":"Venda De Yeso 5x5 Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":6541,"p2":5560,"b":"","bc":0,"bo":0,"iva":0,"s":11,"pdf":0},{"sku":"GLM-0516","n":"Venda De Yeso 6x5 Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":7791,"p2":6622,"b":"","bc":0,"bo":0,"iva":0,"s":14,"pdf":0},{"sku":"GLM-0517","n":"Venda Elastica 2x5 Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":1764,"p2":1499,"b":"","bc":0,"bo":0,"iva":0,"s":59,"pdf":0},{"sku":"GLM-0518","n":"Venda Elastica 3x5 Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":2469,"p2":2099,"b":"","bc":0,"bo":0,"iva":0,"s":56,"pdf":0},{"sku":"GLM-0519","n":"Venda Elastica 4x5 Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":3013,"p2":2561,"b":"","bc":0,"bo":0,"iva":0,"s":61,"pdf":0},{"sku":"GLM-0520","n":"Venda Elastica 6x5 Begut","l":"Lab. Seven Pharma","lc":"070 - Lab. Seven Pharma","p1":4924,"p2":4185,"b":"","bc":0,"bo":0,"iva":0,"s":63,"pdf":0},{"sku":"GLM-0521","n":"Fibrinexam (acido Tranexamico 500mg X 10 Tb)","l":"Lab Salus Pharma","lc":"073 - Lab Salus Pharma","p1":37343,"p2":31742,"b":"","bc":0,"bo":0,"iva":0,"s":32,"pdf":1},{"sku":"GLM-0522","n":"Migradol Tabletas Caja X 30 ( Ergotamina 1 Mg + Cafeina 100 Mg)","l":"Lab Salus Pharma","lc":"073 - Lab Salus Pharma","p1":54265,"p2":46125,"b":"","bc":0,"bo":0,"iva":0,"s":13,"pdf":1},{"sku":"GLM-0523","n":"Neuprel 75mg Pregabalina X 28 Cap","l":"Lab Salus Pharma","lc":"073 - Lab Salus Pharma","p1":25754,"p2":21891,"b":"","bc":0,"bo":0,"iva":0,"s":33,"pdf":1},{"sku":"GLM-0524","n":"Nodol Forte - Acetaminofén 325 Mg + Codeina 30 Mg Tabletas Caja X 30","l":"Lab Salus Pharma","lc":"073 - Lab Salus Pharma","p1":40226,"p2":34192,"b":"","bc":0,"bo":0,"iva":0,"s":28,"pdf":1},{"sku":"GLM-0525","n":"Alibiogyn Crema Vaginal X 40 Gr - Clotrimazol 1%","l":"Lab. Bioesteril","lc":"075 - Lab. Bioesteril","p1":9996,"p2":8496,"b":"","bc":0,"bo":0,"iva":0,"s":190,"pdf":1},{"sku":"GLM-0526","n":"Alibioxin Gel Tópico Tubo X 30 Gr - Piroxican 0.5%","l":"Lab. Bioesteril","lc":"075 - Lab. Bioesteril","p1":6585,"p2":5597,"b":"","bc":0,"bo":0,"iva":0,"s":233,"pdf":1},{"sku":"GLM-0527","n":"Biotrizina Crema Tópica Tubo X 30 Gr - ( Sulfadiazina De Plata 1%)","l":"Lab. Bioesteril","lc":"075 - Lab. Bioesteril","p1":7497,"p2":6372,"b":"","bc":0,"bo":0,"iva":0,"s":59,"pdf":1},{"sku":"GLM-0528","n":"Biovir Ungüento Tópico Tubo X 15 Gr - Aciclovir 5%","l":"Lab. Bioesteril","lc":"075 - Lab. Bioesteril","p1":7160,"p2":6086,"b":"","bc":0,"bo":0,"iva":0,"s":218,"pdf":1},{"sku":"GLM-0529","n":"clindamicina x 10 ampollas 600mg/4ml","l":"Lab. Bioesteril","lc":"075 - Lab. Bioesteril","p1":28120,"p2":23902,"b":"","bc":0,"bo":0,"iva":0,"s":30,"pdf":1},{"sku":"GLM-0530","n":"konoftal max sol oftalmica  5ml ketotifeno","l":"Lab. Bioesteril","lc":"075 - Lab. Bioesteril","p1":10336,"p2":8785,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":1},{"sku":"GLM-0531","n":"Lagrimpro 0.3% Solución Oftálmica Frasco X 5 Ml - Hidroxipropilmetilcelulosa","l":"Lab. Bioesteril","lc":"075 - Lab. Bioesteril","p1":4712,"p2":4005,"b":"","bc":0,"bo":0,"iva":0,"s":432,"pdf":1},{"sku":"GLM-0532","n":"X Ray Dol X 48 Tabletas Capsulares","l":"Lab. Genomma","lc":"079 - Lab. Genomma","p1":90047,"p2":76540,"b":"","bc":0,"bo":0,"iva":0,"s":7,"pdf":0},{"sku":"GLM-0533","n":"Cefadol Extrafuerte Tabletas Recubiertas Caja X 60 ( Ibuprofeno 400 Mg+ Acetaminofen 250 Mg+ Cafeina 65 Mg)","l":"New Health","lc":"083 - New Health","p1":74543,"p2":63362,"b":"6 -> 1","bc":6,"bo":1,"iva":0,"s":490,"pdf":1},{"sku":"GLM-0534","n":"Macho One Chontaduro Borojo Higos","l":"New Health","lc":"083 - New Health","p1":41867,"p2":35587,"b":"","bc":0,"bo":0,"iva":0,"s":22,"pdf":1},{"sku":"GLM-0535","n":"One Night Frutos Rojos Noche X 25 Sobres","l":"New Health","lc":"083 - New Health","p1":36068,"p2":30658,"b":"","bc":0,"bo":0,"iva":0,"s":3,"pdf":1},{"sku":"GLM-0536","n":"One Night Yerbabuena Y Maracuya Noche X 30 Sobres","l":"New Health","lc":"083 - New Health","p1":36068,"p2":30658,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":1},{"sku":"GLM-0537","n":"One Tos Jarabe Frasco X 120 Ml ( Hedera + Propoleo)","l":"New Health","lc":"083 - New Health","p1":11070,"p2":9409,"b":"3 -> 1","bc":3,"bo":1,"iva":0,"s":82,"pdf":1},{"sku":"GLM-0538","n":"Stomavid nh  susp x 120 ml metronidazol+nifuroxadida","l":"New Health","lc":"083 - New Health","p1":22967,"p2":19522,"b":"","bc":0,"bo":0,"iva":0,"s":71,"pdf":1},{"sku":"GLM-0539","n":"Stomavid Nh X18 Cap (metronidazol600+nifuroxazida 200)","l":"New Health","lc":"083 - New Health","p1":26388,"p2":22430,"b":"","bc":0,"bo":0,"iva":0,"s":1042,"pdf":1},{"sku":"GLM-0540","n":"Activit- B Gold Cápsulas Blanda Caja X 30 ( Complejo B + Zinc + Acido Folico + Vitamina D 39","l":"Lab. Novofarlab","lc":"084 - Lab. Novofarlab","p1":16905,"p2":14369,"b":"","bc":0,"bo":0,"iva":0,"s":250,"pdf":0},{"sku":"GLM-0541","n":"Biotina 900 Mcg Cápsulas Blandas Caja X 30","l":"Lab. Novofarlab","lc":"084 - Lab. Novofarlab","p1":16259,"p2":13820,"b":"","bc":0,"bo":0,"iva":0,"s":27,"pdf":0},{"sku":"GLM-0542","n":"Calcio 400 Mg + Vitamina D3 100 Ui Cápsula Blanda Frasco X 60 ( Supl. Dietario)","l":"Lab. Novofarlab","lc":"084 - Lab. Novofarlab","p1":17140,"p2":14569,"b":"","bc":0,"bo":0,"iva":0,"s":66,"pdf":0},{"sku":"GLM-0543","n":"Colágeno + Biotina 200 Mg/900 Mg Cápsula Blanda X30","l":"Lab. Novofarlab","lc":"084 - Lab. Novofarlab","p1":16966,"p2":14569,"b":"","bc":0,"bo":0,"iva":0,"s":177,"pdf":0},{"sku":"GLM-0544","n":"Colageno 500 Mg Cápsulas Blandas Caja X 30","l":"Lab. Novofarlab","lc":"084 - Lab. Novofarlab","p1":16259,"p2":13820,"b":"","bc":0,"bo":0,"iva":0,"s":17,"pdf":0},{"sku":"GLM-0545","n":"Fosfogen - Complejo B x 30 caps (Suplemento dietario con vitaminas B1.B2.B3.B6.B9.B12+Zinc+Vitamina D3)","l":"Lab. Novofarlab","lc":"084 - Lab. Novofarlab","p1":19485,"p2":16562,"b":"","bc":0,"bo":0,"iva":0,"s":100,"pdf":0},{"sku":"GLM-0546","n":"Henoclox meloxican 15 mg x 10 tab","l":"Lab. Novofarlab","lc":"084 - Lab. Novofarlab","p1":3667,"p2":3117,"b":"24 -> 2","bc":24,"bo":2,"iva":0,"s":50,"pdf":0},{"sku":"GLM-0547","n":"isoflavona de soya + calcio + vit D3 x 30 cap","l":"Lab. Novofarlab","lc":"084 - Lab. Novofarlab","p1":23300,"p2":19805,"b":"","bc":0,"bo":0,"iva":0,"s":45,"pdf":0},{"sku":"GLM-0548","n":"Omega 3 1000mg Epa180mg -dha 120 Mg","l":"Lab. Novofarlab","lc":"084 - Lab. Novofarlab","p1":17140,"p2":14569,"b":"","bc":0,"bo":0,"iva":0,"s":96,"pdf":0},{"sku":"GLM-0549","n":"resveratrol 600 vit c+ vit b3","l":"Lab. Novofarlab","lc":"084 - Lab. Novofarlab","p1":16959,"p2":13820,"b":"","bc":0,"bo":0,"iva":0,"s":46,"pdf":0},{"sku":"GLM-0550","n":"Vitamina E 1000 Ui + Selenio 35 Mcg 10 X 30 Cápsulas Blandas","l":"Lab. Novofarlab","lc":"084 - Lab. Novofarlab","p1":19950,"p2":16748,"b":"","bc":0,"bo":0,"iva":0,"s":100,"pdf":0},{"sku":"GLM-0551","n":"Bellaface 2 Mg / 0.03 Mg Tabletas Recubiertas Caja X 21 ( Dienogest + Etinilestradiol)","l":"Lab. Lafrancol","lc":"093 - Lab. Lafrancol","p1":26311,"p2":22364,"b":"","bc":0,"bo":0,"iva":0,"s":28,"pdf":0},{"sku":"GLM-0552","n":"Bellaface Suave 2 Mg / 20 Mcg Tabletas Recubiertas Caja X 28 ( Dienogest + Etinilestradiol)","l":"Lab. Lafrancol","lc":"093 - Lab. Lafrancol","p1":26311,"p2":22364,"b":"","bc":0,"bo":0,"iva":0,"s":33,"pdf":0},{"sku":"GLM-0553","n":"Adifar Tabletas plegadiza X 20 (ACETAMINOFEN 325mg + N-BUTILBROMURO DE HIOSCINA 10mg)","l":"Tridex S.A","lc":"101 - Tridex S.A","p1":23155,"p2":19682,"b":"","bc":0,"bo":0,"iva":0,"s":16,"pdf":0},{"sku":"GLM-0554","n":"Arthiless 1% Gel Topico Tubo X 50 Gr ( Diclofenaco Sodico)","l":"Tridex S.A","lc":"101 - Tridex S.A","p1":15007,"p2":12756,"b":"","bc":0,"bo":0,"iva":0,"s":22,"pdf":0},{"sku":"GLM-0555","n":"Atrixib 200mg Caja X 10 capsulas (celecoxib)","l":"Tridex S.A","lc":"101 - Tridex S.A","p1":17039,"p2":14483,"b":"","bc":0,"bo":0,"iva":0,"s":13,"pdf":0},{"sku":"GLM-0556","n":"Binafar Tabletas Caja X 24 ( Ibuprofeno + Metocarbamol)","l":"Tridex S.A","lc":"101 - Tridex S.A","p1":26559,"p2":22575,"b":"","bc":0,"bo":0,"iva":0,"s":117,"pdf":0},{"sku":"GLM-0557","n":"Clindabact Caja X 3 Óvulos ( Clotrimazol + Clindamicina)","l":"Tridex S.A","lc":"101 - Tridex S.A","p1":19461,"p2":16542,"b":"","bc":0,"bo":0,"iva":0,"s":54,"pdf":0},{"sku":"GLM-0558","n":"Clindabact Crema clindamicina +clotrimazol","l":"Tridex S.A","lc":"101 - Tridex S.A","p1":19128,"p2":16258,"b":"","bc":0,"bo":0,"iva":0,"s":620,"pdf":0},{"sku":"GLM-0559","n":"Derma 3 Crema Tubo X 40 Gr (clioquinol, Betametasona, Gentamicina)","l":"Tridex S.A","lc":"101 - Tridex S.A","p1":28450,"p2":24182,"b":"","bc":0,"bo":0,"iva":0,"s":23,"pdf":0},{"sku":"GLM-0560","n":"Ibuprofar 2% Suspensión X 120 Ml ( Ibuprofeno)","l":"Tridex S.A","lc":"101 - Tridex S.A","p1":15451,"p2":13133,"b":"","bc":0,"bo":0,"iva":0,"s":31,"pdf":0},{"sku":"GLM-0561","n":"Ibuprofar Compuesto X 48 Cap Ibuprofeno 200 + Cafeina 30 Mg","l":"Tridex S.A","lc":"101 - Tridex S.A","p1":29122,"p2":24754,"b":"","bc":0,"bo":0,"iva":0,"s":23,"pdf":0},{"sku":"GLM-0562","n":"Kencycaps 100 Mg Cápsulas Caja X 10 ( Doxiciclina)","l":"Tridex S.A","lc":"101 - Tridex S.A","p1":10510,"p2":8933,"b":"","bc":0,"bo":0,"iva":0,"s":18,"pdf":0},{"sku":"GLM-0563","n":"Medizol 500 Mg Ovulos Caja X 2 (clotrimazol)","l":"Tridex S.A","lc":"101 - Tridex S.A","p1":19061,"p2":16193,"b":"","bc":0,"bo":0,"iva":0,"s":5,"pdf":0},{"sku":"GLM-0564","n":"Ofti Pat Oftalmica Fco x2,5 ml (Olopatadina)","l":"Tridex S.A","lc":"101 - Tridex S.A","p1":24327,"p2":20678,"b":"","bc":0,"bo":0,"iva":0,"s":11,"pdf":0},{"sku":"GLM-0565","n":"Pomada Verde Galez Pote X 23 Gr","l":"Tridex S.A","lc":"101 - Tridex S.A","p1":8439,"p2":7173,"b":"","bc":0,"bo":0,"iva":19,"s":17,"pdf":0},{"sku":"GLM-0566","n":"Bakzia 200 Mg/5 Ml Polvo Para Reconstituir Frasco X 15 Ml ( Azitromicina)","l":"Farmacomercial","lc":"109 - Farmacomercial","p1":15251,"p2":12963,"b":"","bc":0,"bo":0,"iva":0,"s":94,"pdf":0},{"sku":"GLM-0567","n":"Bakzia 500 Mg Tabletas Caja X 3 ( Azitromicina)","l":"Farmacomercial","lc":"109 - Farmacomercial","p1":6873,"p2":5842,"b":"","bc":0,"bo":0,"iva":0,"s":129,"pdf":0},{"sku":"GLM-0568","n":"Dertrifar Cr X 20 Gr Clotri+neom+dexam","l":"Farmacomercial","lc":"109 - Farmacomercial","p1":10600,"p2":9010,"b":"6 -> 2","bc":6,"bo":2,"iva":0,"s":177,"pdf":0},{"sku":"GLM-0569","n":"Histair 2.5mg/5ml Jarabe Frasco X 60 Ml ( Desloratadina)","l":"Farmacomercial","lc":"109 - Farmacomercial","p1":7391,"p2":6282,"b":"","bc":0,"bo":0,"iva":0,"s":24,"pdf":0},{"sku":"GLM-0570","n":"Jeringa 10ml 21g X 1 1/2","l":"Farmacomercial","lc":"109 - Farmacomercial","p1":28371,"p2":24115,"b":"","bc":0,"bo":0,"iva":19,"s":11,"pdf":0},{"sku":"GLM-0571","n":"Jeringa 2p 5Ml  21G X 1 1/2 Caja X 100","l":"Farmacomercial","lc":"109 - Farmacomercial","p1":19700,"p2":16800,"b":"","bc":0,"bo":0,"iva":19,"s":16,"pdf":0},{"sku":"GLM-0572","n":"Loisten 500 Mg Tabletas Recubierta Caja X 6 ( Nitazoxanida)","l":"Farmacomercial","lc":"109 - Farmacomercial","p1":13976,"p2":11880,"b":"","bc":0,"bo":0,"iva":0,"s":153,"pdf":0},{"sku":"GLM-0573","n":"Neumuc 2,5mg/5ml Jarabe Frasco X 120 Ml ( Bromhexina Clorhidrato + Guaifenesina + Guayacolato De Glicerilo)","l":"Farmacomercial","lc":"109 - Farmacomercial","p1":13555,"p2":11522,"b":"","bc":0,"bo":0,"iva":0,"s":168,"pdf":0},{"sku":"GLM-0574","n":"Resgripfar Cápsulas Caja X 10 ( Acetaminofen 500 Mg + Cetirizina 5 Mg + Fenilefrina 10 Mg)","l":"Farmacomercial","lc":"109 - Farmacomercial","p1":5292,"p2":4498,"b":"","bc":0,"bo":0,"iva":0,"s":22,"pdf":0},{"sku":"GLM-0575","n":"Resgripfar Cápsulas Caja X 100 ( Acetaminofen 500 Mg + Cetirizina 5 Mg + Fenilefrina 10 Mg)","l":"Farmacomercial","lc":"109 - Farmacomercial","p1":51450,"p2":43732,"b":"","bc":0,"bo":0,"iva":0,"s":30,"pdf":0},{"sku":"GLM-0576","n":"Akuoma Fps 50 Mg Sobres Caja X 24 Gel","l":"Delta Quiruric","lc":"114 - Delta Quiruric","p1":75728,"p2":64369,"b":"","bc":0,"bo":0,"iva":19,"s":8,"pdf":0},{"sku":"GLM-0577","n":"Akuoma Tubo X 60 GR Protector Solar Gel Spf 50 + Vitamina E","l":"Delta Quiruric","lc":"114 - Delta Quiruric","p1":38073,"p2":32362,"b":"","bc":0,"bo":0,"iva":19,"s":31,"pdf":0},{"sku":"GLM-0578","n":"Azclor Nl Solución Nasal Frasco X 30 Ml ( Agua De Mar+ Dexpanthenol+ Manzanilla+ Aloe Vera)","l":"Delta Quiruric","lc":"114 - Delta Quiruric","p1":23373,"p2":19867,"b":"","bc":0,"bo":0,"iva":0,"s":9,"pdf":0},{"sku":"GLM-0579","n":"Bebezyn Crema Tubo X 30 Gr ( Antipañalitica Triticum Vulgare)","l":"Delta Quiruric","lc":"114 - Delta Quiruric","p1":14553,"p2":12370,"b":"","bc":0,"bo":0,"iva":0,"s":20,"pdf":0},{"sku":"GLM-0580","n":"Flucimix O T Solución Frasco Gotero X 5 Ml ( Natamycin + Ichthammol + Acetic Acid + Cannabis Sativa)","l":"Delta Quiruric","lc":"114 - Delta Quiruric","p1":11774,"p2":10008,"b":"","bc":0,"bo":0,"iva":19,"s":2,"pdf":0},{"sku":"GLM-0581","n":"Hydro Lak Citrato De Sodio","l":"Delta Quiruric","lc":"114 - Delta Quiruric","p1":51859,"p2":44080,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":0},{"sku":"GLM-0582","n":"Acetaminodelt Acetaminofen 500 x 100 tab","l":"Lab. Delta","lc":"119 - Lab. Delta","p1":7874,"p2":6614,"b":"","bc":0,"bo":0,"iva":0,"s":271,"pdf":0},{"sku":"GLM-0583","n":"amdelt  ampicilina 500 x 100 cap","l":"Lab. Delta","lc":"119 - Lab. Delta","p1":44295,"p2":37651,"b":"","bc":0,"bo":0,"iva":0,"s":45,"pdf":0},{"sku":"GLM-0584","n":"BenzatiDelt (Pencilina G Benzatinica 1.200) x10amp","l":"Lab. Delta","lc":"119 - Lab. Delta","p1":27580,"p2":23443,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":0},{"sku":"GLM-0585","n":"Benzatidelt 2.400 Ui X 10 Amp","l":"Lab. Delta","lc":"119 - Lab. Delta","p1":40425,"p2":34361,"b":"","bc":0,"bo":0,"iva":0,"s":9,"pdf":0},{"sku":"GLM-0586","n":"Ceftridelt  ceftriaxona 1gr  x 10 ampollas","l":"Lab. Delta","lc":"119 - Lab. Delta","p1":31700,"p2":26945,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":0},{"sku":"GLM-0587","n":"deltmoxi amoxicilina 500mg x 100 cap","l":"Lab. Delta","lc":"119 - Lab. Delta","p1":35000,"p2":29750,"b":"","bc":0,"bo":0,"iva":0,"s":87,"pdf":0},{"sku":"GLM-0588","n":"Enoxaparina Sódica 40mg-10 jeringas","l":"Lab. Delta","lc":"119 - Lab. Delta","p1":176032,"p2":149627,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":0},{"sku":"GLM-0589","n":"lincodent lincomicina 600mg x 10 ampollas","l":"Lab. Delta","lc":"119 - Lab. Delta","p1":22551,"p2":19168,"b":"","bc":0,"bo":0,"iva":0,"s":97,"pdf":0},{"sku":"GLM-0590","n":"Vitamina E 1000UI+Selenio 35MCG X 30 Cap","l":"Lab.Totalmax","lc":"125 - Lab.Totalmax","p1":26767,"p2":22752,"b":"","bc":0,"bo":0,"iva":0,"s":36,"pdf":0},{"sku":"GLM-0591","n":"Vitamina E x 1000MG X 30 Sofgel","l":"Lab.Totalmax","lc":"125 - Lab.Totalmax","p1":18926,"p2":16087,"b":"","bc":0,"bo":0,"iva":0,"s":23,"pdf":0},{"sku":"GLM-0592","n":"Aceite De Almendras Gotero X 25 Ml Caja X 12","l":"Lab. Ms Chemical","lc":"350 - Lab. Ms Chemical","p1":16625,"p2":14131,"b":"","bc":0,"bo":0,"iva":19,"s":2,"pdf":0},{"sku":"GLM-0593","n":"Aceite De Ricino Fco X 20 Ml x12","l":"Lab. Ms Chemical","lc":"350 - Lab. Ms Chemical","p1":18884,"p2":16052,"b":"","bc":0,"bo":0,"iva":19,"s":7,"pdf":0},{"sku":"GLM-0594","n":"Ácido Bórico Bolsa X 400 Gr","l":"Lab. Ms Chemical","lc":"350 - Lab. Ms Chemical","p1":8910,"p2":7573,"b":"","bc":0,"bo":0,"iva":19,"s":8,"pdf":0},{"sku":"GLM-0595","n":"Acido Borico X 100 Gr bolsa","l":"Lab. Ms Chemical","lc":"350 - Lab. Ms Chemical","p1":2784,"p2":2367,"b":"","bc":0,"bo":0,"iva":19,"s":31,"pdf":0},{"sku":"GLM-0596","n":"Bicarbonato De Soda 100gr bolsa","l":"Lab. Ms Chemical","lc":"350 - Lab. Ms Chemical","p1":2747,"p2":2335,"b":"","bc":0,"bo":0,"iva":19,"s":47,"pdf":0},{"sku":"GLM-0597","n":"Bicarbonato De Soda Bolsa X 400 Gr","l":"Lab. Ms Chemical","lc":"350 - Lab. Ms Chemical","p1":4631,"p2":3937,"b":"","bc":0,"bo":0,"iva":19,"s":1,"pdf":0},{"sku":"GLM-0598","n":"Sulfato De Magnesio Bolsa X 400 Gr","l":"Lab. Ms Chemical","lc":"350 - Lab. Ms Chemical","p1":3526,"p2":2997,"b":"","bc":0,"bo":0,"iva":19,"s":15,"pdf":0},{"sku":"GLM-0599","n":"Vaselina Pura Pote X 125 Gr","l":"Lab. Ms Chemical","lc":"350 - Lab. Ms Chemical","p1":5155,"p2":4382,"b":"","bc":0,"bo":0,"iva":19,"s":75,"pdf":0},{"sku":"GLM-0600","n":"Vaselina Pura Pote X 30 Gr","l":"Lab. Ms Chemical","lc":"350 - Lab. Ms Chemical","p1":2021,"p2":1718,"b":"","bc":0,"bo":0,"iva":19,"s":93,"pdf":0},{"sku":"GLM-0601","n":"Vaselina Pura Pote X 60 Gr","l":"Lab. Ms Chemical","lc":"350 - Lab. Ms Chemical","p1":3300,"p2":2805,"b":"","bc":0,"bo":0,"iva":19,"s":39,"pdf":0},{"sku":"GLM-0602","n":"D-Yabron multivit sabor fresa X 240ml (Complejo B+Calcio+hierro+Vitamina D+Magnesio+Zinc)","l":"Lab. Medical Farma","lc":"405 - Lab. Medical Farma","p1":18581,"p2":15794,"b":"","bc":0,"bo":0,"iva":0,"s":13,"pdf":1},{"sku":"GLM-0603","n":"Fire Lips Solución Protectora 10 Ml Gotas ( Potector Labios)","l":"Lab. Medical Farma","lc":"405 - Lab. Medical Farma","p1":13127,"p2":11158,"b":"","bc":0,"bo":0,"iva":0,"s":156,"pdf":1},{"sku":"GLM-0604","n":"Fuxol locion x30ml","l":"Lab. Medical Farma","lc":"405 - Lab. Medical Farma","p1":19757,"p2":16793,"b":"","bc":0,"bo":0,"iva":0,"s":96,"pdf":1},{"sku":"GLM-0605","n":"hemofol  hierro complejo b acido folico","l":"Lab. Medical Farma","lc":"405 - Lab. Medical Farma","p1":13608,"p2":11566,"b":"","bc":0,"bo":0,"iva":0,"s":68,"pdf":1},{"sku":"GLM-0606","n":"K-llosil (acido Salicilico, Acido Lactico,resocinol)","l":"Lab. Medical Farma","lc":"405 - Lab. Medical Farma","p1":18580,"p2":15793,"b":"","bc":0,"bo":0,"iva":0,"s":51,"pdf":1},{"sku":"GLM-0607","n":"Lyptus Spray garganta cereza X 120ml (Tomillo+Hedera helix+Jengibre+Propoleo)","l":"Lab. Medical Farma","lc":"405 - Lab. Medical Farma","p1":17052,"p2":14494,"b":"","bc":0,"bo":0,"iva":0,"s":11,"pdf":1},{"sku":"GLM-0608","n":"Lyptus Spray garganta menta X 120ml (Tomillo+Hedera helix+Jengibre+Propoleo)","l":"Lab. Medical Farma","lc":"405 - Lab. Medical Farma","p1":17052,"p2":14494,"b":"","bc":0,"bo":0,"iva":0,"s":13,"pdf":1},{"sku":"GLM-0609","n":"Skin Plus protector labial cereza (Provitamina B5+Cera de abejas+Lanolina)","l":"Lab. Medical Farma","lc":"405 - Lab. Medical Farma","p1":8569,"p2":7283,"b":"","bc":0,"bo":0,"iva":0,"s":7,"pdf":1},{"sku":"GLM-0610","n":"Skin Plus protector labial menta (Provitamina B5+Cera de abejas+Lanolina)","l":"Lab. Medical Farma","lc":"405 - Lab. Medical Farma","p1":8569,"p2":7283,"b":"","bc":0,"bo":0,"iva":0,"s":7,"pdf":1},{"sku":"GLM-0611","n":"Skin Plus protector labial uva (Provitamina B5+Cera de abejas+Lanolina)","l":"Lab. Medical Farma","lc":"405 - Lab. Medical Farma","p1":8569,"p2":7283,"b":"","bc":0,"bo":0,"iva":0,"s":7,"pdf":1},{"sku":"GLM-0612","n":"U-Gusil locion X 10ml (Acido salicilico+Acido benzoico+Ticonazol+Aloe vera)","l":"Lab. Medical Farma","lc":"405 - Lab. Medical Farma","p1":17405,"p2":14794,"b":"","bc":0,"bo":0,"iva":0,"s":2,"pdf":1},{"sku":"GLM-0613","n":"epakur jab  apio ruibarbo alcachofa perejil","l":"Lab. Profar","lc":"406 - Lab. Profar","p1":11928,"p2":10139,"b":"","bc":0,"bo":0,"iva":0,"s":4,"pdf":0},{"sku":"GLM-0614","n":"Flora Genesis 1000mg(Probióticos + Prebióticos)","l":"Lab. Profar","lc":"406 - Lab. Profar","p1":19845,"p2":16868,"b":"","bc":0,"bo":0,"iva":0,"s":5,"pdf":0},{"sku":"GLM-0615","n":"Komilon Appetit","l":"Lab. Profar","lc":"406 - Lab. Profar","p1":21168,"p2":17993,"b":"","bc":0,"bo":0,"iva":0,"s":29,"pdf":0},{"sku":"GLM-0616","n":"MultiCbrin x 30 Caps","l":"Lab. Profar","lc":"406 - Lab. Profar","p1":19213,"p2":16331,"b":"","bc":0,"bo":0,"iva":0,"s":24,"pdf":0},{"sku":"GLM-0617","n":"MultiCbrin X 360 Ml","l":"Lab. Profar","lc":"406 - Lab. Profar","p1":18182,"p2":15455,"b":"","bc":0,"bo":0,"iva":0,"s":67,"pdf":0},{"sku":"GLM-0618","n":"zin ovit-c  vitamina c jarabe x 360 ml","l":"Lab. Profar","lc":"406 - Lab. Profar","p1":17456,"p2":14952,"b":"","bc":0,"bo":0,"iva":0,"s":12,"pdf":0},{"sku":"GLM-0619","n":"Zincovit c Naranja vitamina c x 100 tab","l":"Lab. Profar","lc":"406 - Lab. Profar","p1":28260,"p2":24021,"b":"","bc":0,"bo":0,"iva":19,"s":5,"pdf":0},{"sku":"GLM-0620","n":"Azitromicina 500 Mg Tabletas Caja X 3 (impofin-z)","l":"Lab. Impofar","lc":"408 - Lab. Impofar","p1":5954,"p2":5060,"b":"","bc":0,"bo":0,"iva":0,"s":635,"pdf":0},{"sku":"GLM-0621","n":"Desloratadina 5 Mg Tabletas Caja X 10 (impodina)","l":"Lab. Impofar","lc":"408 - Lab. Impofar","p1":7571,"p2":6435,"b":"","bc":0,"bo":0,"iva":0,"s":444,"pdf":0},{"sku":"GLM-0622","n":"Meloxicam 15 Mg Tabletas Caja X 10 (impomel-x)","l":"Lab. Impofar","lc":"408 - Lab. Impofar","p1":4484,"p2":3811,"b":"","bc":0,"bo":0,"iva":0,"s":713,"pdf":0},{"sku":"GLM-0623","n":"Actipen Frutos Rojos X 500ml Sanly","l":"Sanly","lc":"409 - Sanly","p1":26600,"p2":22610,"b":"","bc":0,"bo":0,"iva":0,"s":14,"pdf":0},{"sku":"GLM-0624","n":"Aliflus jab x 120 Adulto  Propoleo Manzanilla ajo marañon","l":"Sanly","lc":"409 - Sanly","p1":14711,"p2":12504,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":0},{"sku":"GLM-0625","n":"Aliflus niños jbe 120 g","l":"Sanly","lc":"409 - Sanly","p1":16476,"p2":14004,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":0},{"sku":"GLM-0626","n":"Aliflus x 24 sbr propoleo hierbabuena polen maraño jengibre miel","l":"Sanly","lc":"409 - Sanly","p1":37696,"p2":32042,"b":"","bc":0,"bo":0,"iva":0,"s":1,"pdf":0},{"sku":"GLM-0627","n":"Colagyn 10 X800 Gr Colageno Sanly","l":"Sanly","lc":"409 - Sanly","p1":32016,"p2":27214,"b":"","bc":0,"bo":0,"iva":0,"s":7,"pdf":0},{"sku":"GLM-0628","n":"fibruela bolsa doypack x 300 gr psyllium","l":"Sanly","lc":"409 - Sanly","p1":25463,"p2":21643,"b":"","bc":0,"bo":0,"iva":0,"s":10,"pdf":0},{"sku":"GLM-0629","n":"Zarzagen Drenador Hepatico","l":"Sanly","lc":"409 - Sanly","p1":14604,"p2":12413,"b":"","bc":0,"bo":0,"iva":0,"s":14,"pdf":0},{"sku":"GLM-0630","n":"Indiker Casete Prueba Embarazo","l":"Imex Group","lc":"435 - Imex Group","p1":2628,"p2":2234,"b":"","bc":0,"bo":0,"iva":0,"s":342,"pdf":0},{"sku":"GLM-0631","n":"Indiker Semanas Advanced Prueba Embarazo","l":"Imex Group","lc":"435 - Imex Group","p1":25742,"p2":21881,"b":"","bc":0,"bo":0,"iva":0,"s":10,"pdf":0},{"sku":"GLM-0632","n":"Preservativos Sens 20 X 5 Sutidos","l":"Imex Group","lc":"435 - Imex Group","p1":105600,"p2":90998,"b":"","bc":0,"bo":0,"iva":0,"s":6,"pdf":0},{"sku":"GLM-0633","n":"Preservativos Sens Expression (Bandeja 3X30)","l":"Imex Group","lc":"435 - Imex Group","p1":94545,"p2":80364,"b":"","bc":0,"bo":0,"iva":0,"s":23,"pdf":0},{"sku":"GLM-0634","n":"Prueba Embarazo Home Test Casete","l":"Imex Group","lc":"435 - Imex Group","p1":1828,"p2":1553,"b":"","bc":0,"bo":0,"iva":0,"s":48,"pdf":0},{"sku":"GLM-0635","n":"Prueba Embarazo HomeTest Esfero","l":"Imex Group","lc":"435 - Imex Group","p1":2964,"p2":2519,"b":"","bc":0,"bo":0,"iva":0,"s":19,"pdf":0},{"sku":"GLM-0636","n":"Bromyl Jarabe Frasco X 120 Ml - Cereza ( Bromhexina Clorhidrato + Guaifenesina)","l":"Medimfarma","lc":"438 - Medimfarma","p1":10022,"p2":8519,"b":"","bc":0,"bo":0,"iva":0,"s":79,"pdf":0},{"sku":"GLM-0637","n":"Dkg Crema Tubo X 20 Gr ( Neomicina+ Clotrimazol+ Betametasona)","l":"Medimfarma","lc":"438 - Medimfarma","p1":8442,"p2":7176,"b":"","bc":0,"bo":0,"iva":0,"s":48,"pdf":0},{"sku":"GLM-0638","n":"Galac Suspensión Oral Frasco X 360 Ml ( Hidroxido De Alumino + Hidróxido De Magnesio + Simeticona)","l":"Medimfarma","lc":"438 - Medimfarma","p1":12090,"p2":10277,"b":"","bc":0,"bo":0,"iva":0,"s":120,"pdf":0},{"sku":"GLM-0639","n":"Ocutrix Solución Oftálmica Frasco X 5 Ml ( Polimicina + Neomicina + Dexametasona)","l":"Medimfarma","lc":"438 - Medimfarma","p1":10857,"p2":9228,"b":"","bc":0,"bo":0,"iva":0,"s":116,"pdf":0},{"sku":"GLM-0640","n":"Paragrip Cápsulas Caja X 100 ( Acetaminofen + Cafeina + Fenilefrina Hcl+ Cetirizina 2 Hcl)","l":"Medimfarma","lc":"438 - Medimfarma","p1":49510,"p2":42083,"b":"","bc":0,"bo":0,"iva":0,"s":34,"pdf":0},{"sku":"GLM-0641","n":"Epibalin  pregabalina 75mg x 30","l":"Msn","lc":"MSN - Msn","p1":19518,"p2":16590,"b":"","bc":0,"bo":0,"iva":0,"s":51,"pdf":0},{"sku":"GLM-0642","n":"Leutrien montelukas 10 mg x 30 tab","l":"Msn","lc":"MSN - Msn","p1":25245,"p2":21458,"b":"","bc":0,"bo":0,"iva":0,"s":41,"pdf":0},{"sku":"GLM-0643","n":"Platemax clopidrogel 75 x 30","l":"Msn","lc":"MSN - Msn","p1":13879,"p2":11797,"b":"","bc":0,"bo":0,"iva":0,"s":22,"pdf":0},{"sku":"GLM-0644","n":"Safelevo levofloxacina 500mg x 7 tab","l":"Msn","lc":"MSN - Msn","p1":16105,"p2":13689,"b":"","bc":0,"bo":0,"iva":0,"s":17,"pdf":0},{"sku":"GLM-0645","n":"Safelevo levofloxacina 750mg x 7 tab","l":"Msn","lc":"MSN - Msn","p1":29327,"p2":24928,"b":"","bc":0,"bo":0,"iva":0,"s":7,"pdf":0}];
+
+let config = JSON.parse(localStorage.getItem('glomar_config_2026')) || structuredClone(DEFAULT_CONFIG);
+let productImages = JSON.parse(localStorage.getItem('glomar_images_2026')) || structuredClone(INITIAL_IMAGES);
+let products = JSON.parse(localStorage.getItem('glomar_products_2026')) || structuredClone(INITIAL_PRODUCTS);
+let cart = JSON.parse(localStorage.getItem('glomar_cart_2026')) || [];
+
+let isDevMode = false;
+let priceMode = config.assignedList || 'p1';
+let filteredProducts = [];
+let currentPage = 1;
+const PAGE_SIZE = 36;
+let editingSku = null;
+let pendingImgData = "";
+
+const fmtCOP = (n) => '$' + Math.round(n).toLocaleString('es-CO');
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3200);
+}
+
+/* ================= MODO DESARROLLADOR VS MODO CLIENTE ================= */
+function handleModeToggle() {
+  if (isDevMode) {
+    isDevMode = false;
+    updateModeUI();
+    showToast('Cambiado a Modo Cliente');
+  } else {
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinModal').classList.add('open');
+    setTimeout(() => document.getElementById('pinInput').focus(), 80);
+  }
+}
+
+function closePinModal() {
+  document.getElementById('pinModal').classList.remove('open');
+}
+
+function verifyPin() {
+  const val = document.getElementById('pinInput').value.trim();
+  if (val === DEV_PIN) {
+    isDevMode = true;
+    closePinModal();
+    updateModeUI();
+    showToast('Modo Desarrollador activado');
+  } else {
+    showToast('Clave incorrecta');
+  }
+}
+
+function updateModeUI() {
+  const badge = document.getElementById('modeBadge');
+  const btn = document.getElementById('btnToggleMode');
+  const devPanel = document.getElementById('devPanel');
+
+  if (isDevMode) {
+    badge.textContent = 'Modo Desarrollador';
+    badge.className = 'mode-badge mode-dev';
+    btn.textContent = '👁️ Cambiar a Modo Cliente';
+    devPanel.classList.add('open');
+    document.getElementById('devClientName').value = config.clientName || '';
+    document.getElementById('devClientNit').value = config.clientNit || '';
+    document.getElementById('devPriceList').value = config.assignedList || 'p1';
+    document.getElementById('devWhatsapp').value = config.whatsappNumber || '';
+  } else {
+    badge.textContent = 'Modo Cliente';
+    badge.className = 'mode-badge mode-client';
+    btn.textContent = '🔒 Modo Desarrollador';
+    devPanel.classList.remove('open');
+  }
+
+  renderClientHeaderAndPriceControls();
+  renderGrid();
+  renderCart();
+}
+
+function syncClientConfig() {
+  config.clientName = document.getElementById('devClientName').value.trim();
+  config.clientNit = document.getElementById('devClientNit').value.trim();
+  config.assignedList = document.getElementById('devPriceList').value;
+  config.lockPriceList = true;
+  config.whatsappNumber = document.getElementById('devWhatsapp').value.replace(/[^0-9]/g, '');
+  priceMode = config.assignedList;
+
+  document.getElementById('clientName').value = config.clientName;
+  document.getElementById('clientNit').value = config.clientNit;
+
+  localStorage.setItem('glomar_config_2026', JSON.stringify(config));
+  renderClientHeaderAndPriceControls();
+  renderGrid();
+  renderCart();
+}
+
+function saveClientFields() {
+  config.clientName = document.getElementById('clientName').value.trim();
+  config.clientNit = document.getElementById('clientNit').value.trim();
+  localStorage.setItem('glomar_config_2026', JSON.stringify(config));
+}
+
+function renderClientHeaderAndPriceControls() {
+  const banner = document.getElementById('clientBanner');
+  const manualInputs = document.getElementById('clientManualInputs');
+  const switchArea = document.getElementById('priceSwitchArea');
+
+  if (config.clientName) {
+    banner.style.display = 'block';
+    banner.innerHTML = `<strong>Cliente:</strong> ${config.clientName} ${config.clientNit ? '• <strong>NIT/Doc:</strong> ' + config.clientNit : ''}`;
+  } else {
+    banner.style.display = 'none';
+  }
+
+  if (!isDevMode && config.clientName) {
+    manualInputs.style.display = 'none';
+  } else {
+    manualInputs.style.display = 'grid';
+    document.getElementById('clientName').value = config.clientName || '';
+    document.getElementById('clientNit').value = config.clientNit || '';
+  }
+
+  if (!isDevMode) {
+    const label = priceMode === 'p1' ? 'Tarifa Asignada: Lista 1 (Base)' : 'Tarifa Asignada: Lista 2 (Preferencial)';
+    switchArea.innerHTML = `<span class="list-lock-badge">${label}</span>`;
+  } else {
+    switchArea.innerHTML = `
+      <span class="pill ${priceMode === 'p1' ? 'active' : ''}" id="pillL1" onclick="setPriceList('p1')">Precios Lista 1 (Base)</span>
+      <span class="pill ${priceMode === 'p2' ? 'active' : ''}" id="pillL2" onclick="setPriceList('p2')">Precios Lista 2 (Preferencial)</span>
+    `;
+  }
+}
+
+/* ================= GESTIÓN DE IMÁGENES POR PRODUCTO ================= */
+function openImgModal(sku) {
+  const prod = products.find(p => p.sku === sku);
+  if (!prod) return;
+  editingSku = sku;
+  pendingImgData = productImages[sku] || "";
+  document.getElementById('imgModalTitle').textContent = `[${prod.sku}] ${prod.n}`;
+  document.getElementById('imgUrlInput').value = pendingImgData.startsWith('http') ? pendingImgData : '';
+  document.getElementById('imgFileInput').value = '';
+  updateImgPreview(pendingImgData);
+  document.getElementById('imgModal').classList.add('open');
+}
+
+function closeImgModal() {
+  document.getElementById('imgModal').classList.remove('open');
+  editingSku = null;
+}
+
+function updateImgPreview(src) {
+  const box = document.getElementById('imgPreviewBox');
+  if (src) {
+    box.innerHTML = `<img src="${src}" alt="Vista previa">`;
+  } else {
+    box.innerHTML = `<span style="color:#94a3b8;font-size:0.82rem;">Sin imagen asignada</span>`;
+  }
+}
+
+function previewImageUrl(url) {
+  pendingImgData = url.trim();
+  updateImgPreview(pendingImgData);
+}
+
+document.getElementById('imgFileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const MAX_SIZE = 380;
+      let w = img.width, h = img.height;
+      if (w > h && w > MAX_SIZE) { h = Math.round(h * MAX_SIZE / w); w = MAX_SIZE; }
+      else if (h > MAX_SIZE) { w = Math.round(w * MAX_SIZE / h); h = MAX_SIZE; }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      pendingImgData = canvas.toDataURL('image/jpeg', 0.82);
+      document.getElementById('imgUrlInput').value = '';
+      updateImgPreview(pendingImgData);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+function saveProductImage() {
+  if (!editingSku) return;
+  if (pendingImgData) {
+    productImages[editingSku] = pendingImgData;
+  } else {
+    delete productImages[editingSku];
+  }
+  try {
+    localStorage.setItem('glomar_images_2026', JSON.stringify(productImages));
+    showToast('Imagen guardada correctamente');
+  } catch (err) {
+    showToast('Imagen aplicada en sesión (recuerda Guardar HTML para Cliente)');
+  }
+  closeImgModal();
+  renderGrid();
+}
+
+function removeProductImage(sku) {
+  delete productImages[sku];
+  localStorage.setItem('glomar_images_2026', JSON.stringify(productImages));
+  renderGrid();
+  showToast('Imagen eliminada');
+}
+
+/* ================= EXPORTAR HTML AUTOCONTENIDO PARA EL CLIENTE ================= */
+function downloadConfiguredHtml() {
+  let docHtml = document.documentElement.outerHTML;
+  const cleanConfig = {
+    clientName: config.clientName || "",
+    clientNit: config.clientNit || "",
+    assignedList: config.assignedList || "p1",
+    lockPriceList: true,
+    whatsappNumber: config.whatsappNumber || ""
+  };
+
+  docHtml = docHtml.replace(
+    /const DEFAULT_CONFIG = \{[\s\S]*?\};/,
+    `const DEFAULT_CONFIG = ${JSON.stringify(cleanConfig)};`
+  );
+  docHtml = docHtml.replace(
+    /const INITIAL_IMAGES = \{[\s\S]*?\};/,
+    `const INITIAL_IMAGES = ${JSON.stringify(productImages)};`
+  );
+  docHtml = docHtml.replace(
+    /const INITIAL_PRODUCTS = \[[\s\S]*?\];/,
+    `const INITIAL_PRODUCTS = ${JSON.stringify(products)};`
+  );
+
+  const blob = new Blob(['<!DOCTYPE html>\n' + docHtml], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  const safeClient = (cleanConfig.clientName || 'Cliente').replace(/[^a-zA-Z0-9]/g, '_');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Catalogo_Glomarfarma_${safeClient}_2026.html`;
+  a.click();
+  showToast('Archivo HTML listo para enviar al cliente');
+}
+
+/* ================= CATÁLOGO, FILTROS Y CARRITO ================= */
+function populateLabs() {
+  const sel = document.getElementById('labFilter');
+  const current = sel.value;
+  const counts = {};
+  products.forEach(p => counts[p.l] = (counts[p.l] || 0) + 1);
+  const labs = Object.keys(counts).sort((a,b) => counts[b] - counts[a]);
+  sel.innerHTML = `<option value="">Todos los laboratorios (${labs.length})</option>` +
+    labs.map(l => `<option value="${l}">${l} (${counts[l]})</option>`).join('');
+  sel.value = current;
+}
+
+function setPriceList(mode) {
+  if (!isDevMode) return;
+  priceMode = mode;
+  config.assignedList = mode;
+  document.getElementById('devPriceList').value = mode;
+  localStorage.setItem('glomar_config_2026', JSON.stringify(config));
+  renderClientHeaderAndPriceControls();
+  renderGrid();
+  renderCart();
+}
+
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const lab = document.getElementById('labFilter').value;
+  const st = document.getElementById('stockFilter').value;
+  const pdf = document.getElementById('pdfFilter').value;
+
+  filteredProducts = products.filter(p => {
+    if (lab && p.l !== lab) return false;
+    if (st === 'available' && p.s <= 0) return false;
+    if (st === 'low' && (p.s <= 0 || p.s > 10)) return false;
+    if (st === 'out' && p.s > 0) return false;
+    if (st === 'bono' && !p.b) return false;
+    if (st === 'withimg' && !productImages[p.sku]) return false;
+    if (st === 'noimg' && productImages[p.sku]) return false;
+    if (pdf === 'new' && p.pdf === 1) return false;
+    if (pdf === 'pdf' && p.pdf === 0) return false;
+    if (q) {
+      const hay = `${p.n} ${p.l} ${p.sku}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  currentPage = 1;
+  renderGrid();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('productGrid');
+  const total = filteredProducts.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const slice = filteredProducts.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('resultCount').textContent =
+    `Mostrando ${slice.length} de ${total} referencias (${priceMode === 'p1' ? 'Lista 1' : 'Lista 2'})`;
+
+  grid.innerHTML = slice.map(p => {
+    const price = priceMode === 'p1' ? p.p1 : p.p2;
+    const out = p.s <= 0;
+    const imgSrc = productImages[p.sku];
+
+    const stockBadge = out
+      ? `<span class="badge b-out">Agotado (0 und)</span>`
+      : (p.s <= 10
+          ? `<span class="badge b-low">Stock bajo: ${p.s} und</span>`
+          : `<span class="badge b-ok">Disponible: ${p.s} und</span>`);
+
+    const imgBlock = `
+      <div class="img-box">
+        ${imgSrc
+          ? `<img src="${imgSrc}" alt="${p.n}" loading="lazy">`
+          : `<div class="img-placeholder"><span style="font-size:1.5rem;">💊</span><span>${p.l}</span></div>`
+        }
+        ${isDevMode ? `
+          <div class="img-dev-overlay">
+            <button class="btn-img-edit" onclick="openImgModal('${p.sku}')">📷 ${imgSrc ? 'Cambiar' : 'Subir foto'}</button>
+            ${imgSrc ? `<button class="btn-img-del" onclick="removeProductImage('${p.sku}')" title="Quitar foto">✕</button>` : ''}
+          </div>
+        ` : ''}
+      </div>
+    `;
+
+    return `
+      <div class="card ${out ? 'out' : ''}">
+        <div>
+          <div class="card-top">
+            <span class="lab-tag">${p.l}</span>
+            ${p.pdf === 0 ? '<span class="new-tag">Nuevo en catálogo</span>' : `<span class="sku-txt">${p.sku}</span>`}
+          </div>
+          ${imgBlock}
+          <div class="prod-title">${p.n}</div>
+          <div class="badges">
+            ${stockBadge}
+            ${p.b ? `<span class="badge b-bono">Bono: ${p.b}</span>` : ''}
+            ${p.iva > 0 ? `<span class="badge b-iva">IVA ${p.iva}%</span>` : ''}
+          </div>
+        </div>
+        <div>
+          <div class="price-row">
+            <div>
+              <div class="price-main">${fmtCOP(price)}</div>
+              ${isDevMode ? `<div class="price-sub">${priceMode === 'p1' ? 'L2: ' + fmtCOP(p.p2) : 'L1: ' + fmtCOP(p.p1)}</div>` : ''}
+            </div>
+            <span class="sku-txt">${p.sku}</span>
+          </div>
+          <div class="qty-box">
+            <button onclick="stepQty('${p.sku}', -1)" ${out ? 'disabled' : ''}>-</button>
+            <input type="number" id="qty_${p.sku}" value="${p.bc > 0 ? p.bc : 1}" min="1" max="${p.s || 1}" ${out ? 'disabled' : ''}>
+            <button onclick="stepQty('${p.sku}', 1)" ${out ? 'disabled' : ''}>+</button>
+            <button class="btn-add" onclick="addToCart('${p.sku}')" ${out ? 'disabled' : ''}>
+              ${out ? 'Sin Stock' : '+ Pedir'}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const pag = document.getElementById('pagination');
+  pag.innerHTML = totalPages > 1 ? `
+    <button class="btn btn-outline" onclick="changePage(-1)" ${currentPage===1?'disabled':''}>Anterior</button>
+    <span style="font-size:0.85rem;font-weight:600;">Página ${currentPage} de ${totalPages}</span>
+    <button class="btn btn-outline" onclick="changePage(1)" ${currentPage===totalPages?'disabled':''}>Siguiente</button>
+  ` : '';
+}
+
+function changePage(delta) {
+  currentPage += delta;
+  renderGrid();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function stepQty(sku, delta) {
+  const inp = document.getElementById('qty_' + sku);
+  if (!inp) return;
+  let val = parseInt(inp.value || '1', 10) + delta;
+  if (val < 1) val = 1;
+  inp.value = val;
+}
+
+function addToCart(sku) {
+  const prod = products.find(p => p.sku === sku);
+  if (!prod || prod.s <= 0) return;
+  const inp = document.getElementById('qty_' + sku);
+  const qty = Math.max(1, parseInt(inp ? inp.value : '1', 10));
+  const existing = cart.find(c => c.sku === sku);
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    cart.push({ sku: prod.sku, qty });
+  }
+  saveCart();
+  renderCart();
+  showToast(`Agregado: ${qty} x ${prod.n.slice(0, 35)}...`);
+}
+
+function updateCartQty(sku, qty) {
+  qty = parseInt(qty, 10);
+  if (isNaN(qty) || qty <= 0) {
+    cart = cart.filter(c => c.sku !== sku);
+  } else {
+    const item = cart.find(c => c.sku === sku);
+    if (item) item.qty = qty;
+  }
+  saveCart();
+  renderCart();
+}
+
+function clearCart() {
+  cart = [];
+  saveCart();
+  renderCart();
+}
+
+function saveCart() {
+  localStorage.setItem('glomar_cart_2026', JSON.stringify(cart));
+}
+
+function calcLine(item) {
+  const p = products.find(x => x.sku === item.sku);
+  if (!p) return null;
+  const unitPrice = priceMode === 'p1' ? p.p1 : p.p2;
+  const bonusUnits = (p.bc > 0 && p.bo > 0) ? Math.floor(item.qty / p.bc) * p.bo : 0;
+  const subtotal = item.qty * unitPrice;
+  const ivaVal = Math.round(subtotal * (p.iva / 100));
+  const total = subtotal + ivaVal;
+  return { p, qty: item.qty, bonusUnits, unitPrice, subtotal, ivaVal, total };
+}
+
+function renderCart() {
+  const container = document.getElementById('cartItems');
+  document.getElementById('cartCount').textContent = cart.length;
+  if (cart.length === 0) {
+    container.innerHTML = `<p style="color:var(--muted);font-size:0.84rem;text-align:center;margin-top:30px;">
+      Agrega productos del catálogo para armar el pedido con bonificaciones e IVA listos para facturar.
+    </p>`;
+    document.getElementById('sumUnits').textContent = '0';
+    document.getElementById('sumBonus').textContent = '0';
+    document.getElementById('sumSub').textContent = '$0';
+    document.getElementById('sumIva').textContent = '$0';
+    document.getElementById('sumTotal').textContent = '$0';
+    return;
+  }
+
+  let tUnits = 0, tBonus = 0, tSub = 0, tIva = 0, tTot = 0;
+  container.innerHTML = cart.map(item => {
+    const c = calcLine(item);
+    if (!c) return '';
+    tUnits += c.qty;
+    tBonus += c.bonusUnits;
+    tSub += c.subtotal;
+    tIva += c.ivaVal;
+    tTot += c.total;
+    const overStock = (c.qty + c.bonusUnits) > c.p.s;
+    return `
+      <div class="cart-item">
+        <div class="cart-item-top">
+          <span>${c.p.n}</span>
+          <button onclick="updateCartQty('${c.p.sku}', 0)" style="border:none;background:none;color:var(--red);cursor:pointer;font-weight:700;">✕</button>
+        </div>
+        <div class="cart-item-meta">
+          <span>${c.p.l} • ${fmtCOP(c.unitPrice)} c/u</span>
+          <strong>${fmtCOP(c.total)}</strong>
+        </div>
+        <div class="cart-item-meta" style="margin-top:6px;">
+          <div>
+            Cant: <input type="number" value="${c.qty}" min="1" style="width:52px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;"
+              onchange="updateCartQty('${c.p.sku}', this.value)">
+            ${c.bonusUnits > 0 ? `<span style="color:var(--teal);font-weight:700;margin-left:6px;">+${c.bonusUnits} bono</span>` : ''}
+          </div>
+          ${overStock ? `<span style="color:var(--red);font-weight:700;">Supera stock (${c.p.s})</span>` : `<span style="color:var(--green);">Stock OK (${c.p.s})</span>`}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('sumUnits').textContent = tUnits;
+  document.getElementById('sumBonus').textContent = tBonus;
+  document.getElementById('sumSub').textContent = fmtCOP(tSub);
+  document.getElementById('sumIva').textContent = fmtCOP(tIva);
+  document.getElementById('sumTotal').textContent = fmtCOP(tTot);
+}
+
+function buildOrderSummaryText() {
+  if (cart.length === 0) return '';
+  const client = config.clientName || document.getElementById('clientName').value.trim() || 'Cliente General';
+  const nit = config.clientNit || document.getElementById('clientNit').value.trim();
+  const lines = [
+    `*PEDIDO GLOMARFARMA SAS*`,
+    `Cliente: ${client}${nit ? ' | NIT/Doc: ' + nit : ''}`,
+    `Lista aplicada: ${priceMode === 'p1' ? 'Lista 1' : 'Lista 2'}`,
+    `--------------------------------`
+  ];
+  let tSub = 0, tIva = 0, tTot = 0, tBonus = 0;
+  cart.forEach((item, i) => {
+    const c = calcLine(item);
+    if (!c) return;
+    tSub += c.subtotal; tIva += c.ivaVal; tTot += c.total; tBonus += c.bonusUnits;
+    lines.push(`${i+1}. [${c.p.sku}] ${c.p.n} (${c.p.l})`);
+    lines.push(`   Cant: ${c.qty}${c.bonusUnits ? ' + ' + c.bonusUnits + ' BONO' : ''} x ${fmtCOP(c.unitPrice)} = ${fmtCOP(c.total)}`);
+  });
+  lines.push(`--------------------------------`);
+  lines.push(`Unidades bonificadas: ${tBonus}`);
+  lines.push(`Subtotal: ${fmtCOP(tSub)} | IVA: ${fmtCOP(tIva)}`);
+  lines.push(`*TOTAL A FACTURAR: ${fmtCOP(tTot)}*`);
+  return lines.join('\n');
+}
+
+function sendWhatsApp() {
+  if (cart.length === 0) return showToast('El carrito está vacío');
+  const txt = encodeURIComponent(buildOrderSummaryText());
+  const phone = (config.whatsappNumber || '').replace(/[^0-9]/g, '');
+  const url = phone ? `https://wa.me/${phone}?text=${txt}` : `https://wa.me/?text=${txt}`;
+  window.open(url, '_blank');
+}
+
+function copyOrderText() {
+  if (cart.length === 0) return showToast('El carrito está vacío');
+  navigator.clipboard.writeText(buildOrderSummaryText());
+  showToast('Pedido copiado al portapapeles listo para facturar');
+}
+
+function downloadOrderExcel() {
+  if (cart.length === 0) return showToast('El carrito está vacío');
+  const rows = cart.map(item => {
+    const c = calcLine(item);
+    return {
+      SKU: c.p.sku,
+      Producto: c.p.n,
+      Laboratorio: c.p.l,
+      Cantidad_Facturable: c.qty,
+      Unidades_Bonificadas: c.bonusUnits,
+      Total_Despacho: c.qty + c.bonusUnits,
+      Precio_Unitario: c.unitPrice,
+      IVA_Porcentaje: c.p.iva,
+      Subtotal: c.subtotal,
+      Valor_IVA: c.ivaVal,
+      Total_Linea: c.total
+    };
+  });
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Pedido_Facturacion');
+  const client = (config.clientName || document.getElementById('clientName').value.trim() || 'Cliente').replace(/[^a-zA-Z0-9]/g, '_');
+  XLSX.writeFile(wb, `Pedido_Glomarfarma_${client}.xlsx`);
+}
+
+function exportCatalogExcel() {
+  const rows = products.map(p => ({
+    'SKU': p.sku,
+    'Nombre Artículo': p.n,
+    'Línea Nivel 1': p.lc,
+    'Precio Lista 1': p.p1,
+    'Bonificaciones': p.b,
+    'IVA': p.iva,
+    'Inventar': p.s,
+    'Precio Lista 2': p.p2,
+    'Tiene Imagen': productImages[p.sku] ? 'SI' : 'NO'
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Listado_Actualizado');
+  XLSX.writeFile(wb, 'Listado_Productos_Glomarfarma_Actualizado.xlsx');
+}
+
+function resetOriginalData() {
+  localStorage.removeItem('glomar_products_2026');
+  products = structuredClone(INITIAL_PRODUCTS);
+  populateLabs();
+  applyFilters();
+  renderCart();
+  showToast('Base original restaurada');
+}
+
+document.getElementById('excelUpload').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const wb = XLSX.read(evt.target.result, { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rawRows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    let hIdx = rawRows.findIndex(r => r && r.some(cell => String(cell).toLowerCase().includes('nombre art')));
+    if (hIdx === -1) hIdx = 0;
+    const hdrs = rawRows[hIdx].map(h => String(h || '').trim().toLowerCase());
+    const iName = hdrs.findIndex(h => h.includes('nombre'));
+    const iLine = hdrs.findIndex(h => h.includes('línea') || h.includes('linea'));
+    const iP1 = hdrs.findIndex(h => h.includes('lista 1') || h.includes('lista_1'));
+    const iBono = hdrs.findIndex(h => h.includes('bonif'));
+    const iIva = hdrs.findIndex(h => h.includes('iva'));
+    const iStock = hdrs.findIndex(h => h.includes('inventar') || h.includes('stock'));
+    const iP2 = hdrs.findIndex(h => h.includes('lista 2') || h.includes('lista_2'));
+
+    const updated = [];
+    let count = 1;
+    for (let i = hIdx + 1; i < rawRows.length; i++) {
+      const r = rawRows[i];
+      if (!r || !r[iName]) continue;
+      const name = String(r[iName]).trim();
+      if (name === '|' || name.toLowerCase() === 'total') continue;
+      const lc = iLine >= 0 ? String(r[iLine] || 'Sin Línea').trim() : 'Sin Línea';
+      const lab = lc.includes(' - ') ? lc.split(' - ')[1].trim() : lc;
+      const bono = iBono >= 0 ? String(r[iBono] || '').trim() : '';
+      let bc = 0, bo = 0;
+      const m = bono.split(',')[0].trim().match(/^(\d+)\s*->\s*(\d+)$/);
+      if (m) { bc = parseInt(m[1], 10); bo = parseInt(m[2], 10); }
+      const existing = products.find(p => p.n.toLowerCase() === name.toLowerCase());
+      updated.push({
+        sku: existing ? existing.sku : `GLM-${String(count).padStart(4, '0')}`,
+        n: name,
+        l: lab,
+        lc: lc,
+        p1: Math.round(Number(r[iP1] || 0)),
+        p2: Math.round(Number(r[iP2] || r[iP1] || 0)),
+        b: bono === 'Sin bono' ? '' : bono,
+        bc, bo,
+        iva: Math.round(Number(r[iIva] || 0) * (Number(r[iIva] || 0) < 1 ? 100 : 1)),
+        s: Math.round(Number(r[iStock] || 0)),
+        pdf: existing ? existing.pdf : 0
+      });
+      count++;
+    }
+    if (updated.length > 0) {
+      products = updated;
+      localStorage.setItem('glomar_products_2026', JSON.stringify(products));
+      document.getElementById('cutInfo').textContent = `Actualizado desde ${file.name} • ${products.length} referencias`;
+      populateLabs();
+      applyFilters();
+      renderCart();
+      showToast(`¡Listo! ${products.length} productos sincronizados desde Excel`);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+populateLabs();
+updateModeUI();
+applyFilters();
+</script>
+</body>
+</html>
